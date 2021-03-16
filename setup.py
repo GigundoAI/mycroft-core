@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mycroft-lib',
-    version="2021.1.11",
+    version="2021.1.11a1",
     license='Apache-2.0',
     author='Mycroft A.I.',
     author_email='devs@mycroft.ai',
@@ -24,7 +24,7 @@ setup(
     description='Mycroft Core',
     install_requires=["requests",
                       "pyee",
-                      "lingua-franca",
+                      "lingua-franca>=0.3.1",
                       "pyxdg",
                       "mycroft-messagebus-client",
                       "inflection",
@@ -33,6 +33,7 @@ setup(
                       "requests-futures"],
     extras_require={
         "bus": ["tornado==6.0.3"],
+        "enclosure": ["tornado==6.0.3"],
         "skills": ["adapt-parser==0.3.7",
                    "padatious==0.4.8",
                    "fann2==1.0.7",
