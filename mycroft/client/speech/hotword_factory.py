@@ -26,6 +26,7 @@ import tempfile
 from threading import Timer, Thread
 from time import time, sleep
 from urllib.error import HTTPError
+import speech_recognition as sr
 
 import requests
 
@@ -151,13 +152,13 @@ class PocketsphinxHotWord(HotWordEngine):
         """If language config doesn't exist then
         we use default language (english) config as a fallback.
         """
-        model_file = join(RECOGNIZER_DIR, 'model', self.lang, 'hmm')
-        if not exists(model_file):
+        model_file = self.get_default_english_model()
+        if self.lang != "en-us":
             LOG.error(
                 'PocketSphinx model not found at "{}". '.format(model_file) +
                 'Falling back to en-us model'
             )
-            model_file = join(RECOGNIZER_DIR, 'model', 'en-us', 'hmm')
+
         config.set_string('-hmm', model_file)
         config.set_string('-dict', dict_name)
         config.set_string('-keyphrase', self.key_phrase)
@@ -179,6 +180,12 @@ class PocketsphinxHotWord(HotWordEngine):
     def found_wake_word(self, frame_data):
         hyp = self.transcribe(frame_data)
         return hyp and self.key_phrase in hyp.hypstr.lower()
+
+    @staticmethod
+    def get_default_english_model():
+        language_directory = join(dirname(sr.__file__),
+                                  "pocketsphinx-data", "en-US")
+        return join(language_directory, "acoustic-model")
 
 
 class PreciseHotword(HotWordEngine):
