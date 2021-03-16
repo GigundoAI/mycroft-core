@@ -11,4 +11,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .client import MessageBusClient, MessageWaiter
+from mycroft.messagebus.client.client import MessageWaiter
+from mycroft_bus_client import MessageBusClient

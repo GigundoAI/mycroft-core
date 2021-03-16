@@ -14,9 +14,8 @@
 #
 from setuptools import setup, find_packages
 
-
 setup(
-    name='mycroft-core',
+    name='mycroft-lib',
     version="2021.1.11",
     license='Apache-2.0',
     author='Mycroft A.I.',
@@ -27,11 +26,45 @@ setup(
                       "pyee",
                       "lingua-franca",
                       "pyxdg",
-                      "mycroft-messagebus-client",
+                      #"mycroft-messagebus-client",
+                      "git+https://github.com/HelloChatterbox/mycroft-messagebus-client",
                       "inflection",
                       "psutil",
                       "fasteners",
                       "requests-futures"],
+    extras_require={
+        "bus": ["tornado==6.0.3"],
+        "skills": ["adapt-parser==0.3.7",
+                   "padatious==0.4.8",
+                   "fann2==1.0.7",
+                   "padaos==0.1.9",
+                   "msm==0.8.8",
+                   "msk==0.3.16"],
+        "stt": ["SpeechRecognition==3.8.1",
+                "PyAudio==0.2.11",
+                "pocketsphinx==0.1.0",
+                "precise-runner==0.2.1"],
+        "mark1": ["pyalsaaudio==0.8.2"],
+        "audio": ["python-vlc==1.1.2"],
+        "audio_engines": ["pychromecast==3.2.2"],
+        "stt_engines": ["google-api-python-client==1.6.4"],
+        "tts_engines": ["gTTS>=2.2.0"],
+        "all": ["tornado==6.0.3",
+                "adapt-parser==0.3.7",
+                "padatious==0.4.8",
+                "fann2==1.0.7",
+                "padaos==0.1.9",
+                "SpeechRecognition==3.8.1",
+                "PyAudio==0.2.11",
+                "pocketsphinx==0.1.0",
+                "precise-runner==0.2.1",
+                "pyalsaaudio==0.8.2",
+                "python-vlc==1.1.2",
+                "pychromecast==3.2.2",
+                "google-api-python-client==1.6.4",
+                "gTTS>=2.2.0"]
+
+    },
     packages=find_packages(include=['mycroft*']),
     include_package_data=True,
 
