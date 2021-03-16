@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 from os.path import abspath
+from datetime import timedelta
 
 from mycroft.messagebus.message import Message
 
@@ -117,6 +118,8 @@ class AudioService:
         Args:
             seconds (int): number of seconds to seek, if negative rewind
         """
+        if isinstance(seconds, timedelta):
+            seconds = seconds.total_seconds()
         if seconds < 0:
             self.seek_backward(abs(seconds))
         else:
@@ -128,6 +131,8 @@ class AudioService:
         Args:
             seconds (int): number of seconds to skip
         """
+        if isinstance(seconds, timedelta):
+            seconds = seconds.total_seconds()
         self.bus.emit(Message('mycroft.audio.service.seek_forward',
                               {"seconds": seconds}))
 
@@ -137,6 +142,8 @@ class AudioService:
          Args:
             seconds (int): number of seconds to rewind
         """
+        if isinstance(seconds, timedelta):
+            seconds = seconds.total_seconds()
         self.bus.emit(Message('mycroft.audio.service.seek_backward',
                               {"seconds": seconds}))
 
