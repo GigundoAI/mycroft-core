@@ -1,6 +1,7 @@
 requests
 pyee
-lingua-franca
+#lingua-franca
+git+https://github.com/HelloChatterbox/lingua-franca@0.4.0rc1
 pyxdg
 #mycroft-messagebus-client
 git+https://github.com/HelloChatterbox/mycroft-messagebus-client
