@@ -15,7 +15,8 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock
 
-from mycroft.messagebus.client import MessageBusClient, MessageWaiter
+from mycroft.messagebus.client import MessageWaiter
+from mycroft_bus_client import MessageBusClient
 
 WS_CONF = {
     'websocket': {

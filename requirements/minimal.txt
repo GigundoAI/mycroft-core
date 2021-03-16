@@ -1,0 +1,10 @@
+requests
+pyee
+lingua-franca
+pyxdg
+#mycroft-messagebus-client
+git+https://github.com/HelloChatterbox/mycroft-messagebus-client
+inflection
+psutil
+fasteners
+requests-futures

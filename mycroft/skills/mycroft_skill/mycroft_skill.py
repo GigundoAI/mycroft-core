@@ -36,8 +36,7 @@ from mycroft.enclosure.gui import SkillGUI
 from mycroft.configuration import Configuration
 from mycroft.dialog import load_dialogs
 from mycroft.filesystem import FileSystemAccess
-from mycroft.messagebus.message import dig_for_message
-from mycroft_bus_client import Message
+from mycroft_bus_client.message import dig_for_message, Message
 from mycroft.metrics import report_metric
 from mycroft.util import (
     resolve_resource_file,
