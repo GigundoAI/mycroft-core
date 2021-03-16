@@ -28,8 +28,8 @@ from os.path import dirname, exists, join, abspath, expanduser, isfile, isdir
 from shutil import rmtree
 from threading import Timer, Thread
 from urllib.error import HTTPError
+import speech_recognition as sr
 
-from petact import install_package
 
 from mycroft.configuration import Configuration, LocalConf, USER_CONFIG
 from mycroft.util.log import LOG
@@ -150,13 +150,13 @@ class PocketsphinxHotWord(HotWordEngine):
         """If language config doesn't exist then
         we use default language (english) config as a fallback.
         """
-        model_file = join(RECOGNIZER_DIR, 'model', self.lang, 'hmm')
-        if not exists(model_file):
+        model_file = self.get_default_english_model()
+        if self.lang != "en-us":
             LOG.error(
                 'PocketSphinx model not found at "{}". '.format(model_file) +
                 'Falling back to en-us model'
             )
-            model_file = join(RECOGNIZER_DIR, 'model', 'en-us', 'hmm')
+                
         config.set_string('-hmm', model_file)
         config.set_string('-dict', dict_name)
         config.set_string('-keyphrase', self.key_phrase)
@@ -179,6 +179,12 @@ class PocketsphinxHotWord(HotWordEngine):
         hyp = self.transcribe(frame_data)
         return hyp and self.key_phrase in hyp.hypstr.lower()
 
+    @staticmethod
+    def get_default_english_model():
+        language_directory = join(dirname(sr.__file__),
+                                  "pocketsphinx-data", "en-US")
+        return join(language_directory, "acoustic-model")
+
 
 class PreciseHotword(HotWordEngine):
     """Precise is the default wake word engine for Mycroft.
@@ -188,6 +194,8 @@ class PreciseHotword(HotWordEngine):
     """
     def __init__(self, key_phrase="hey mycroft", config=None, lang="en-us"):
         super().__init__(key_phrase, config, lang)
+        global install_package
+        from petact import install_package
         from precise_runner import (
             PreciseRunner, PreciseEngine, ReadWriteStream
         )
