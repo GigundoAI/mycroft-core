@@ -24,7 +24,7 @@ setup(
     description='Mycroft Core',
     install_requires=["requests",
                       "pyee",
-                      "lingua-franca",
+                      "lingua-franca>=0.3.1",
                       "pyxdg",
                       "mycroft-messagebus-client",
                       "inflection",
