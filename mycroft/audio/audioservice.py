@@ -255,6 +255,7 @@ class AudioService:
         self.bus.on('recognizer_loop:audio_output_end', self._restore_volume)
         self.bus.on('recognizer_loop:record_end',
                     self._restore_volume_after_record)
+        self.bus.on('mycroft.audio.service.playback_time', self._playback_time)
 
         self._loaded.set()  # Report services loaded
 
@@ -517,6 +518,20 @@ class AudioService:
         if self.current:
             self.current.seek_backward(seconds)
 
+    def _playback_time(self, message):
+        """
+            Returns playback_time info on the message bus.
+
+            Args:
+                message: message bus message, not used but required
+        """
+        if self.current:
+            playback_time = self.current.playback_time
+        else:
+            playback_time = 0
+        self.bus.emit(Message('mycroft.audio.service.playback_time_reply',
+                              data={"time": playback_time}))
+
     def shutdown(self):
         for s in self.service:
             try:
@@ -545,3 +560,5 @@ class AudioService:
                         self._restore_volume)
         self.bus.remove('recognizer_loop:record_end',
                         self._restore_volume_after_record)
+        self.bus.remove('mycroft.audio.service.playback_time',
+                        self._playback_time)

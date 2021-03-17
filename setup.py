@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mycroft-lib',
-    version="2021.1.11a1",
+    version="2021.1.11a3",
     license='Apache-2.0',
     author='Mycroft A.I.',
     author_email='devs@mycroft.ai',
