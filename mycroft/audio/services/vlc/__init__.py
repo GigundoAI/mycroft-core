@@ -31,6 +31,8 @@ class VlcService(AudioBackend):
         self.vlc_list_events = self.list_player.event_manager()
         self.vlc_events.event_attach(vlc.EventType.MediaPlayerPlaying,
                                      self.track_start, 1)
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerTimeChanged,
+                                     self.update_playback_time, None)
         self.vlc_list_events.event_attach(vlc.EventType.MediaListPlayerPlayed,
                                           self.queue_ended, 0)
         self.config = config
@@ -38,15 +40,24 @@ class VlcService(AudioBackend):
         self.name = name
         self.normal_volume = None
         self.low_volume = self.config.get('low_volume', 30)
-
-    def track_start(self, data, other):
-        if self._track_start_callback:
-            self._track_start_callback(self.track_info()['name'])
+        self._playback_time = 0
+        self.player.audio_set_volume(100)
 
     def queue_ended(self, data, other):
         LOG.debug('Queue ended')
         if self._track_start_callback:
             self._track_start_callback(None)
+
+    @property
+    def playback_time(self):
+        return self._playback_time
+
+    def update_playback_time(self, data, other):
+        self._playback_time = data.u.new_time / 1000  # miliseconds to seconds
+
+    def track_start(self, data, other):
+        if self._track_start_callback:
+            self._track_start_callback(self.track_info()['name'])
 
     def supported_uris(self):
         return ['file', 'http', 'https']
