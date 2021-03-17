@@ -34,6 +34,10 @@ class AudioBackend(metaclass=ABCMeta):
         self.config = config
         self.bus = bus
 
+    @property
+    def playback_time(self):
+        return 0
+
     @abstractmethod
     def supported_uris(self):
         """List of supported uri types.
