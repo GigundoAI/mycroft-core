@@ -173,3 +173,14 @@ class AudioService:
     def is_playing(self):
         """True if the audioservice is playing, else False."""
         return self.track_info() != {}
+
+    @property
+    def playback_time(self):
+        """ Request information of current playback time.
+
+            Returns:
+                seconds (int) if track is playing or None
+        """
+        response = self.bus.wait_for_response(Message('mycroft.audio.service.playback_time'))
+        data = response.data if response else {"time": 0}
+        return data.get("time") or 0
