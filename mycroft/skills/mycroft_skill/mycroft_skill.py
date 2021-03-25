@@ -483,8 +483,7 @@ class MycroftSkill:
         validator = validator or validator_default
 
         # Speak query and wait for user response
-        dialog_exists = self.dialog_renderer.render(dialog, data)
-        if dialog_exists:
+        if dialog:
             self.speak_dialog(dialog, data, expect_response=True, wait=True)
         else:
             self.bus.emit(Message('mycroft.mic.listen'))

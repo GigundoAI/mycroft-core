@@ -16,12 +16,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='mycroft-lib',
-    version="2021.1.11a3",
+    version="2021.1.11a5",
     license='Apache-2.0',
-    author='Mycroft A.I.',
-    author_email='devs@mycroft.ai',
-    url='https://github.com/MycroftAI/mycroft-core',
-    description='Mycroft Core',
+    url='https://github.com/HelloChatterbox/mycroft-lib',
+    description='Mycroft packaged as a library',
     install_requires=["requests",
                       "pyee",
                       "lingua-franca>=0.3.1",
@@ -66,6 +64,5 @@ setup(
 
     },
     packages=find_packages(include=['mycroft*']),
-    include_package_data=True,
-
+    include_package_data=True
 )
