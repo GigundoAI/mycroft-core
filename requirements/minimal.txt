@@ -1,10 +1,8 @@
 requests
 pyee
-#lingua-franca
-git+https://github.com/HelloChatterbox/lingua-franca@0.4.0rc1
+git+https://github.com/HelloChatterbox/lingua-nostra
 pyxdg
-#mycroft-messagebus-client
-git+https://github.com/HelloChatterbox/mycroft-messagebus-client
+mycroft-messagebus-client>=0.9.1
 inflection
 psutil
 fasteners
