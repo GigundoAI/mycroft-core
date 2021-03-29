@@ -30,23 +30,44 @@ import warnings
 from calendar import leapdays
 from enum import Enum
 
-# These are the main functions we are using lingua franca to provide
-# TODO 21.08 - move nice_duration methods to Lingua Franca.
-from lingua_franca.format import (
-    join_list,
-    nice_date,
-    nice_date_time,
-    nice_number,
-    nice_time,
-    nice_year,
-    pronounce_number
-)
-# TODO 21.08 - remove import of private method _translate_word
-# Consider whether the remaining items here are necessary.
-from lingua_franca.format import (NUMBER_TUPLE, DateTimeFormat,
-                                  date_time_format, expand_options,
-                                  _translate_word)
-from padatious.util import expand_parentheses
+from mycroft.util.bracket_expansion import expand_parentheses, expand_options
+from mycroft.configuration.locale import get_default_lang
+
+
+# lingua_franca is optional, both lingua_franca and lingua_nostra are supported
+# if both are installed preference is given to LN
+# "setters" will be set in both lbs
+# LN should be functionality equivalent to LF
+
+try:
+    try:
+        from lingua_nostra.format import (NUMBER_TUPLE, DateTimeFormat,
+                                          join_list,
+                                          date_time_format, expand_options,
+                                          _translate_word,
+                                          nice_number, nice_time,
+                                          pronounce_number,
+                                          nice_date, nice_date_time, nice_year)
+    except ImportError:
+        # These are the main functions we are using lingua franca to provide
+        from lingua_franca.format import (NUMBER_TUPLE, DateTimeFormat,
+                                          join_list,
+                                          date_time_format, expand_options,
+                                          _translate_word,
+                                          nice_number, nice_time,
+                                          pronounce_number,
+                                          nice_date, nice_date_time, nice_year)
+except ImportError:
+    def lingua_franca_error(*args, **kwargs):
+        raise ImportError("lingua_franca is not installed")
+
+    from mycroft.util.bracket_expansion import expand_options
+
+    NUMBER_TUPLE, DateTimeFormat = None, None
+
+    join_list = date_time_format = _translate_word = nice_number = \
+        nice_time = pronounce_number = nice_date = nice_date_time = \
+        nice_year = lingua_franca_error
 
 
 class TimeResolution(Enum):

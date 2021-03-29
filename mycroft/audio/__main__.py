@@ -24,7 +24,7 @@ from mycroft.util import (
 )
 from mycroft.util.log import LOG
 from mycroft.util.process_utils import ProcessStatus, StatusCallbackMap
-
+from mycroft.configuration import setup_locale
 import mycroft.audio.speech as speech
 from mycroft.audio.audioservice import AudioService
 
@@ -53,6 +53,7 @@ def main(ready_hook=on_ready, error_hook=on_error, stopping_hook=on_stopping):
                                       on_stopping=stopping_hook)
         status = ProcessStatus('audio', bus, callbacks)
 
+        setup_locale()
         speech.init(bus)
 
         # Connect audio service instance to message bus
