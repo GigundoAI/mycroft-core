@@ -30,7 +30,7 @@ The module does implement some useful functions like basic fuzzy matchin.
 from difflib import SequenceMatcher
 from warnings import warn
 
-import lingua_franca.parse
+
 from lingua_franca import get_default_lang, get_primary_lang_code
 from lingua_franca.parse import extract_number, extract_numbers, \
     extract_duration, get_gender, normalize

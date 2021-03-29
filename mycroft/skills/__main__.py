@@ -37,6 +37,7 @@ from mycroft.util import (
     wait_for_exit_signal
 )
 from mycroft.util.lang import set_default_lang
+from mycroft.util.time import set_default_tz
 from mycroft.util.log import LOG
 from mycroft.util.process_utils import ProcessStatus, StatusCallbackMap
 
@@ -201,6 +202,9 @@ def main(alive_hook=on_alive, started_hook=on_started, ready_hook=on_ready,
     config = Configuration.get()
     # Set the active lang to match the configured one
     set_default_lang(config.get('lang', 'en-us'))
+
+    # Set the default timezone to match the configured one
+    set_default_tz()
 
     # Connect this process to the Mycroft message bus
     bus = start_message_bus_client("SKILLS")

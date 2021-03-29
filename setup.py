@@ -16,15 +16,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='mycroft-lib',
-    version="2021.1.11a5",
+    version="2021.4.2a1",
     license='Apache-2.0',
     url='https://github.com/HelloChatterbox/mycroft-lib',
     description='Mycroft packaged as a library',
     install_requires=["requests",
                       "pyee",
-                      "lingua-franca>=0.3.1",
+                      "lingua-nostra==0.4.0a2",
                       "pyxdg",
-                      "mycroft-messagebus-client",
+                      "mycroft-messagebus-client>=0.9.1",
                       "inflection",
                       "psutil",
                       "fasteners",

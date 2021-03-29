@@ -19,6 +19,12 @@ may not match the system locale.
 """
 from datetime import datetime
 from dateutil.tz import gettz, tzlocal
+from lingua_franca.time import now_utc, now_local, to_local, to_utc, \
+    default_timezone as _default_tz
+
+
+def set_default_tz(tz=None):
+    """ placeholder waiting for lingua_nostra version bump """
 
 
 def default_timezone():
@@ -42,60 +48,7 @@ def default_timezone():
         return gettz(code)
     except Exception:
         # Just go with system default timezone
-        return tzlocal()
-
-
-def now_utc():
-    """Retrieve the current time in UTC
-
-    Returns:
-        (datetime): The current time in Universal Time, aka GMT
-    """
-    return to_utc(datetime.utcnow())
-
-
-def now_local(tz=None):
-    """Retrieve the current time
-
-    Arguments:
-        tz (datetime.tzinfo, optional): Timezone, default to user's settings
-
-    Returns:
-        (datetime): The current time
-    """
-    if not tz:
-        tz = default_timezone()
-    return datetime.now(tz)
-
-
-def to_utc(dt):
-    """Convert a datetime with timezone info to a UTC datetime
-
-    Arguments:
-        dt (datetime): A datetime (presumably in some local zone)
-    Returns:
-        (datetime): time converted to UTC
-    """
-    tzUTC = gettz("UTC")
-    if dt.tzinfo:
-        return dt.astimezone(tzUTC)
-    else:
-        return dt.replace(tzinfo=gettz("UTC")).astimezone(tzUTC)
-
-
-def to_local(dt):
-    """Convert a datetime to the user's local timezone
-
-    Arguments:
-        dt (datetime): A datetime (if no timezone, defaults to UTC)
-    Returns:
-        (datetime): time converted to the local timezone
-    """
-    tz = default_timezone()
-    if dt.tzinfo:
-        return dt.astimezone(tz)
-    else:
-        return dt.replace(tzinfo=gettz("UTC")).astimezone(tz)
+        return _default_tz()
 
 
 def to_system(dt):
