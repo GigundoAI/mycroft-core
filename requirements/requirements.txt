@@ -15,7 +15,7 @@ python-dateutil==2.6.0
 fasteners==0.14.1
 PyYAML==5.1.2
 
-lingua-franca==0.2.2
+git+https://github.com/HelloChatterbox/lingua-nostra
 msm==0.8.8
 msk==0.3.16
 adapt-parser==0.3.7
@@ -25,4 +25,4 @@ padaos==0.1.9
 precise-runner==0.2.1
 petact==0.1.2
 pyxdg==0.26
-git+https://github.com/MycroftAI/mycroft-messagebus-client
+mycroft-messagebus-client>=0.9.1
