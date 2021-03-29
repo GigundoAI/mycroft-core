@@ -17,10 +17,9 @@
 system. This time is based on the setting in the Mycroft config and may or
 may not match the system locale.
 """
-from datetime import datetime
-from dateutil.tz import gettz, tzlocal
+from dateutil.tz import gettz
 from lingua_nostra.time import set_default_tz as _set_default_tz, now_utc, \
-    now_local, to_local, to_utc
+    now_local, to_local, to_utc, to_system, default_timezone as _default_tz
 
 
 def set_default_tz(tz=None):
@@ -50,19 +49,5 @@ def default_timezone():
         return gettz(code)
     except Exception:
         # Just go with system default timezone
-        return tzlocal()
+        return _default_tz()
 
-
-def to_system(dt):
-    """Convert a datetime to the system's local timezone
-
-    Arguments:
-        dt (datetime): A datetime (if no timezone, assumed to be UTC)
-    Returns:
-        (datetime): time converted to the operation system's timezone
-    """
-    tz = tzlocal()
-    if dt.tzinfo:
-        return dt.astimezone(tz)
-    else:
-        return dt.replace(tzinfo=gettz("UTC")).astimezone(tz)
