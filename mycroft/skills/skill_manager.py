@@ -28,7 +28,7 @@ from .settings import SkillSettingsDownloader
 from .skill_loader import SkillLoader
 from .skill_updater import SkillUpdater
 
-from lingua_nostra import load_languages, set_default_lang
+from lingua_franca import load_languages, set_default_lang
 
 SKILL_MAIN_MODULE = '__init__.py'
 

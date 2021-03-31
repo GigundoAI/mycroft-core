@@ -15,7 +15,7 @@ python-dateutil==2.6.0
 fasteners==0.14.1
 PyYAML==5.1.2
 
-git+https://github.com/HelloChatterbox/lingua-nostra
+lingua-nostra==0.4.0a2
 msm==0.8.8
 msk==0.3.16
 adapt-parser==0.3.7
