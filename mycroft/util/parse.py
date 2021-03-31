@@ -31,12 +31,12 @@ from difflib import SequenceMatcher
 from warnings import warn
 
 
-from lingua_nostra import get_default_lang, get_primary_lang_code
-from lingua_nostra.parse import extract_number, extract_numbers, \
+from lingua_franca import get_default_lang, get_primary_lang_code
+from lingua_franca.parse import extract_number, extract_numbers, \
     extract_duration, get_gender, normalize
-from lingua_nostra.parse import extract_datetime as lf_extract_datetime
+from lingua_franca.parse import extract_datetime as lf_extract_datetime
 
-from .time import now_local
+from lingua_franca.time import now_local
 from .log import LOG
 
 

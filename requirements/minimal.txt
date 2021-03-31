@@ -1,6 +1,6 @@
 requests
 pyee
-git+https://github.com/HelloChatterbox/lingua-nostra
+lingua-nostra==0.4.0a2
 pyxdg
 mycroft-messagebus-client>=0.9.1
 inflection
