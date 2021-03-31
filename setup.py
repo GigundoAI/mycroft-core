@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mycroft-lib',
-    version="2021.1.11a5",
+    version="2021.1.11a6",
     license='Apache-2.0',
     url='https://github.com/HelloChatterbox/mycroft-lib',
     description='Mycroft packaged as a library',
