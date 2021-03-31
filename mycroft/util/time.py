@@ -23,6 +23,10 @@ from lingua_franca.time import now_utc, now_local, to_local, to_utc, \
     default_timezone as _default_tz
 
 
+def set_default_tz(tz=None):
+    """ placeholder waiting for lingua_nostra version bump """
+
+
 def default_timezone():
     """Get the default timezone
 
