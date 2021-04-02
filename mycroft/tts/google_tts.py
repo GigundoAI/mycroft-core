@@ -19,7 +19,7 @@ except ImportError:
     gTTS = None
     tts_langs = None
 
-from .tts import TTS, TTSValidator
+from mycroft.tts.tts import TTS, TTSValidator
 
 from mycroft.util.log import LOG
 

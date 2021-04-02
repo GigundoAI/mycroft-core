@@ -28,7 +28,6 @@ from time import time, sleep
 from urllib.error import HTTPError
 import speech_recognition as sr
 
-from petact import install_package
 import requests
 
 from mycroft.configuration import Configuration, LocalConf, USER_CONFIG
