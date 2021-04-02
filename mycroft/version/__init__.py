@@ -31,7 +31,7 @@ CORE_VERSION_BUILD = 1
 CORE_VERSION_TUPLE = (CORE_VERSION_MAJOR,
                       CORE_VERSION_MINOR,
                       CORE_VERSION_BUILD)
-CORE_VERSION_STR = '.'.join(map(str, CORE_VERSION_TUPLE))
+CORE_VERSION_STR = '.'.join(map(str, CORE_VERSION_TUPLE)) + "(mycroft-lib)"
 
 
 class VersionManager:
