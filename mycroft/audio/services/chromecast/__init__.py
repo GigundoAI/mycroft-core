@@ -159,6 +159,14 @@ def autodetect(config, bus):
     """
         Autodetect chromecasts on the network and create backends for each
     """
+    backends = config.get('backends', [])
+
+    if len([b for b in backends
+            if backends[b]['type'] == 'chromecast' and
+               backends[b].get('active', False)]) > 0:
+        # TODO allow enabling/disabling by name
+        return []
+
     casts = pychromecast.get_chromecasts(timeout=5, tries=2, retry_wait=2)
     ret = []
     for c in casts:
