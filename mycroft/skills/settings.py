@@ -71,7 +71,6 @@ from mycroft_bus_client import Message
 from mycroft.util import camel_case_split
 from mycroft.util.log import LOG
 from mycroft.util.file_utils import ensure_directory_exists
-from .msm_wrapper import build_msm_config, create_msm
 
 ONE_MINUTE = 60
 
@@ -161,9 +160,9 @@ class SettingsMetaUploader:
     def msm(self):
         """Instance of the Mycroft Skills Manager"""
         if self._msm is None:
+            from mycroft.skills.msm_wrapper import build_msm_config, create_msm
             msm_config = build_msm_config(self.config)
             self._msm = create_msm(msm_config)
-
         return self._msm
 
     def get_local_skills(self):
