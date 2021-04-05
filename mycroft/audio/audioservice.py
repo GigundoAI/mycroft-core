@@ -131,7 +131,6 @@ def load_internal_services(config, bus, path=None):
     service_directories = get_services(path)
     service = []
     for descriptor in service_directories:
-        LOG.info('Loading ' + descriptor['name'])
         try:
             service_module = descriptor['info']['mod']
             spec = descriptor['info']['spec']
@@ -144,6 +143,7 @@ def load_internal_services(config, bus, path=None):
         else:
             s = setup_service(service_module, config, bus)
             if s:
+                LOG.info('Loaded ' + descriptor['name'])
                 service += s
 
     return service
