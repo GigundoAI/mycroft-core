@@ -61,7 +61,9 @@ class FallbackSkill(MycroftSkill):
         """Goes through all fallback handlers until one returns True"""
 
         def handler(message):
-            start, stop = message.data.get('fallback_range', (0, 101))
+            # No hard limit to 100, while not officially supported
+            # mycroft-lib can handle fallback priorities up to 999
+            start, stop = message.data.get('fallback_range', (0, 999))
             # indicate fallback handling start
             LOG.debug('Checking fallbacks in range '
                       '{} - {}'.format(start, stop))
