@@ -35,9 +35,13 @@ class IntentServiceInterface:
     def __init__(self, bus=None):
         self.bus = bus
         self.registered_intents = []
+        self.skill_id = self.__class__.__name__
 
     def set_bus(self, bus):
         self.bus = bus
+
+    def set_id(self, skill_id):
+        self.skill_id = skill_id
 
     def register_adapt_keyword(self, vocab_type, entity, aliases=None):
         """Send a message to the intent service to add an Adapt keyword.
@@ -48,11 +52,12 @@ class IntentServiceInterface:
         """
         aliases = aliases or []
         self.bus.emit(Message("register_vocab",
-                              {'start': entity, 'end': vocab_type}))
+                              {'start': entity, 'end': vocab_type},
+                              context={"skill_id": self.skill_id}))
         for alias in aliases:
             self.bus.emit(Message("register_vocab", {
                 'start': alias, 'end': vocab_type, 'alias_of': entity
-            }))
+            }, context={"skill_id": self.skill_id}))
 
     def register_adapt_regex(self, regex):
         """Register a regex with the intent service.
@@ -61,7 +66,8 @@ class IntentServiceInterface:
             regex (str): Regex to be registered, (Adapt extracts keyword
                          reference from named match group.
         """
-        self.bus.emit(Message("register_vocab", {'regex': regex}))
+        self.bus.emit(Message("register_vocab", {'regex': regex},
+                              context={"skill_id": self.skill_id}))
 
     def register_adapt_intent(self, name, intent_parser):
         """Register an Adapt intent parser object.
@@ -69,7 +75,8 @@ class IntentServiceInterface:
         Serializes the intent_parser and sends it over the messagebus to
         registered.
         """
-        self.bus.emit(Message("register_intent", intent_parser.__dict__))
+        self.bus.emit(Message("register_intent", intent_parser.__dict__,
+                      context={"skill_id": self.skill_id}))
         self.registered_intents.append((name, intent_parser))
 
     def detach_intent(self, intent_name):
@@ -78,7 +85,8 @@ class IntentServiceInterface:
         Args:
             intent_name(str): Intent reference
         """
-        self.bus.emit(Message("detach_intent", {"intent_name": intent_name}))
+        self.bus.emit(Message("detach_intent", {"intent_name": intent_name},
+                              context={"skill_id": self.skill_id}))
 
     def set_adapt_context(self, context, word, origin):
         """Set an Adapt context.
@@ -90,7 +98,8 @@ class IntentServiceInterface:
         """
         self.bus.emit(Message('add_context',
                               {'context': context, 'word': word,
-                               'origin': origin}))
+                               'origin': origin},
+                              context={"skill_id": self.skill_id}))
 
     def remove_adapt_context(self, context):
         """Remove an active Adapt context.
@@ -98,7 +107,8 @@ class IntentServiceInterface:
         Args:
             context(str): name of context to remove
         """
-        self.bus.emit(Message('remove_context', {'context': context}))
+        self.bus.emit(Message('remove_context', {'context': context},
+                              context={"skill_id": self.skill_id}))
 
     def register_padatious_intent(self, intent_name, filename):
         """Register a padatious intent file with Padatious.
@@ -114,7 +124,8 @@ class IntentServiceInterface:
 
         data = {"file_name": filename,
                 "name": intent_name}
-        self.bus.emit(Message("padatious:register_intent", data))
+        self.bus.emit(Message("padatious:register_intent", data,
+                              context={"skill_id": self.skill_id}))
         self.registered_intents.append((intent_name.split(':')[-1], data))
 
     def register_padatious_entity(self, entity_name, filename):
@@ -129,10 +140,10 @@ class IntentServiceInterface:
         if not exists(filename):
             raise FileNotFoundError('Unable to find "{}"'.format(filename))
 
-        self.bus.emit(Message('padatious:register_entity', {
-            'file_name': filename,
-            'name': entity_name
-        }))
+        self.bus.emit(Message('padatious:register_entity',
+                              {'file_name': filename,
+                               'name': entity_name},
+                              context={"skill_id": self.skill_id}))
 
     def __iter__(self):
         """Iterator over the registered intents.
