@@ -255,6 +255,7 @@ class MycroftSkill:
             self._bus = bus
             self.events.set_bus(bus)
             self.intent_service.set_bus(bus)
+            self.intent_service.set_id(self.skill_id)
             self.event_scheduler.set_bus(bus)
             self.event_scheduler.set_id(self.skill_id)
             self._enclosure = EnclosureAPI(bus, self.name)
@@ -277,6 +278,7 @@ class MycroftSkill:
             """Boiler plate for returning the response to the sender."""
             def wrapper(message):
                 result = func(*message.data['args'], **message.data['kwargs'])
+                message.context["skill_id"] = self.skill_id
                 self.bus.emit(message.response(data={'result': result}))
 
             return wrapper
@@ -379,6 +381,7 @@ class MycroftSkill:
 
     def _send_public_api(self, message):
         """Respond with the skill's public api."""
+        message.context["skill_id"] = self.skill_id
         self.bus.emit(message.response(data=self.public_api))
 
     def get_intro_message(self):
@@ -496,7 +499,10 @@ class MycroftSkill:
         if dialog:
             self.speak_dialog(dialog, data, expect_response=True, wait=True)
         else:
-            self.bus.emit(Message('mycroft.mic.listen'))
+            msg = dig_for_message()
+            msg = msg.reply('mycroft.mic.listen') if msg else \
+                  Message('mycroft.mic.listen', context={"skill_id": self.skill_id})
+            self.bus.emit(msg)
         return self._wait_response(is_cancel, validator, on_fail_fn,
                                    num_retries)
 
@@ -510,6 +516,11 @@ class MycroftSkill:
             on_fail (callable): function handling retries
 
         """
+        msg = dig_for_message()
+        msg = msg.reply('mycroft.mic.listen') if msg else \
+              Message('mycroft.mic.listen',
+                      context={"skill_id": self.skill_id})
+
         num_fails = 0
         while True:
             response = self.__get_response()
@@ -535,7 +546,7 @@ class MycroftSkill:
             if line:
                 self.speak(line, expect_response=True)
             else:
-                self.bus.emit(Message('mycroft.mic.listen'))
+                self.bus.emit(msg)
 
     def ask_yesno(self, prompt, data=None):
         """Read prompt and wait for a yes/no answer
@@ -690,7 +701,8 @@ class MycroftSkill:
         used in last 5 minutes.
         """
         self.bus.emit(Message('active_skill_request',
-                              {'skill_id': self.skill_id}))
+                              {'skill_id': self.skill_id},
+                              {"skill_id": self.skill_id}))
 
     def _handle_collect_resting(self, _=None):
         """Handler for collect resting screen messages.
@@ -700,7 +712,8 @@ class MycroftSkill:
         self.log.info('Registering resting screen')
         message = Message(
             'mycroft.mark2.register_idle',
-            data={'name': self.resting_name, 'id': self.skill_id}
+            data={'name': self.resting_name, 'id': self.skill_id},
+            context={"skill_id": self.skill_id}
         )
         self.bus.emit(message)
 
@@ -920,12 +933,18 @@ class MycroftSkill:
             LOG.exception(msg)
             # append exception information in message
             skill_data['exception'] = repr(e)
+            if handler_info:
+                # Indicate that the skill handler errored
+                msg_type = handler_info + '.error'
+                self.bus.emit(Message(msg_type, skill_data,
+                                      {"skill_id":  self.skill_id}))
 
         def on_start(message):
             """Indicate that the skill handler is starting."""
             if handler_info:
                 # Indicate that the skill handler is starting if requested
                 msg_type = handler_info + '.start'
+                message.context["skill_id"] = self.skill_id
                 self.bus.emit(message.forward(msg_type, skill_data))
 
         def on_end(message):
@@ -936,6 +955,7 @@ class MycroftSkill:
                 self._initial_settings = deepcopy(self.settings)
             if handler_info:
                 msg_type = handler_info + '.complete'
+                message.context["skill_id"] = self.skill_id
                 self.bus.emit(message.forward(msg_type, skill_data))
 
         wrapper = create_wrapper(handler, self.skill_id, on_start, on_end,
@@ -1142,14 +1162,16 @@ class MycroftSkill:
         """
         self.bus.emit(Message('mycroft.skill.set_cross_context',
                               {'context': context, 'word': word,
-                               'origin': self.skill_id}))
+                               'origin': self.skill_id},
+                              {"skill_id": self.skill_id}))
 
     def remove_cross_skill_context(self, context):
         """Tell all skills to remove a keyword from the context manager."""
         if not isinstance(context, str):
             raise ValueError('context should be a string')
         self.bus.emit(Message('mycroft.skill.remove_cross_context',
-                              {'context': context}))
+                              {'context': context},
+                              {"skill_id": self.skill_id}))
 
     def remove_context(self, context):
         """Remove a keyword from the context manager."""
@@ -1165,9 +1187,10 @@ class MycroftSkill:
             entity:         word to register
             entity_type:    Intent handler entity to tie the word to
         """
-        self.bus.emit(Message('register_vocab', {
-            'start': entity, 'end': to_alnum(self.skill_id) + entity_type
-        }))
+        self.bus.emit(Message('register_vocab',
+                              {'start': entity,
+                               'end': to_alnum(self.skill_id) + entity_type},
+                              {"skill_id": self.skill_id}))
 
     def register_regex(self, regex_str):
         """Register a new regex.
@@ -1201,6 +1224,7 @@ class MycroftSkill:
         message = dig_for_message()
         m = message.forward("speak", data) if message \
             else Message("speak", data)
+        m.context["skill_id"] = self.skill_id
         self.bus.emit(m)
 
         if wait:
@@ -1376,7 +1400,8 @@ class MycroftSkill:
         self.events.clear()
 
         self.bus.emit(
-            Message('detach_skill', {'skill_id': str(self.skill_id) + ':'}))
+            Message('detach_skill', {'skill_id': str(self.skill_id) + ':'},
+                    {"skill_id": self.skill_id}))
         try:
             self.stop()
         except Exception:
@@ -1403,6 +1428,7 @@ class MycroftSkill:
         """
         message = dig_for_message()
         context = context or message.context if message else {}
+        context["skill_id"] = self.skill_id
         return self.event_scheduler.schedule_event(handler, when, data, name,
                                                    context=context)
 
@@ -1425,6 +1451,7 @@ class MycroftSkill:
         """
         message = dig_for_message()
         context = context or message.context if message else {}
+        context["skill_id"] = self.skill_id
         return self.event_scheduler.schedule_repeating_event(
             handler,
             when,
