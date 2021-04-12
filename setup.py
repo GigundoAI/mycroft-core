@@ -13,72 +13,58 @@
 # limitations under the License.
 #
 from setuptools import setup, find_packages
-import os
-import os.path
-
-BASEDIR = os.path.abspath(os.path.dirname(__file__))
-
-
-def get_version():
-    """ Find the version of mycroft-core"""
-    version = None
-    version_file = os.path.join(BASEDIR, 'mycroft', 'version', '__init__.py')
-    major, minor, build = (None, None, None)
-    with open(version_file) as f:
-        for line in f:
-            if 'CORE_VERSION_MAJOR' in line:
-                major = line.split('=')[1].strip()
-            elif 'CORE_VERSION_MINOR' in line:
-                minor = line.split('=')[1].strip()
-            elif 'CORE_VERSION_BUILD' in line:
-                build = line.split('=')[1].strip()
-
-            if ((major and minor and build) or
-                    '# END_VERSION_BLOCK' in line):
-                break
-    version = '.'.join([major, minor, build])
-
-    return version
-
-
-def required(requirements_file):
-    """ Read requirements file and remove comments and empty lines. """
-    with open(os.path.join(BASEDIR, requirements_file), 'r') as f:
-        requirements = f.read().splitlines()
-        if 'MYCROFT_LOOSE_REQUIREMENTS' in os.environ:
-            print('USING LOOSE REQUIREMENTS!')
-            requirements = [r.replace('==', '>=') for r in requirements]
-        return [pkg for pkg in requirements
-                if pkg.strip() and not pkg.startswith("#")]
-
 
 setup(
-    name='mycroft-core',
-    version=get_version(),
+    name='mycroft-lib',
+    version="2021.1.11",
     license='Apache-2.0',
     author='Mycroft A.I.',
     author_email='devs@mycroft.ai',
     url='https://github.com/MycroftAI/mycroft-core',
     description='Mycroft Core',
-    install_requires=required('requirements/requirements.txt'),
+    install_requires=["requests",
+                      "pyee",
+                      "lingua-franca",
+                      "pyxdg",
+                      "mycroft-messagebus-client",
+                      "inflection",
+                      "psutil",
+                      "fasteners",
+                      "requests-futures"],
     extras_require={
-        'audio-backend': required('requirements/extra-audiobackend.txt'),
-        'mark1': required('requirements/extra-mark1.txt'),
-        'stt': required('requirements/extra-stt.txt')
+        "bus": ["tornado==6.0.3"],
+        "skills": ["adapt-parser==0.3.7",
+                   "padatious==0.4.8",
+                   "fann2==1.0.7",
+                   "padaos==0.1.9",
+                   "msm==0.8.8",
+                   "msk==0.3.16"],
+        "stt": ["SpeechRecognition==3.8.1",
+                "PyAudio==0.2.11",
+                "pocketsphinx==0.1.0",
+                "precise-runner==0.2.1"],
+        "mark1": ["pyalsaaudio==0.8.2"],
+        "audio": ["python-vlc==1.1.2"],
+        "audio_engines": ["pychromecast==3.2.2"],
+        "stt_engines": ["google-api-python-client==1.6.4"],
+        "tts_engines": ["gTTS>=2.2.0"],
+        "all": ["tornado==6.0.3",
+                "adapt-parser==0.3.7",
+                "padatious==0.4.8",
+                "fann2==1.0.7",
+                "padaos==0.1.9",
+                "SpeechRecognition==3.8.1",
+                "PyAudio==0.2.11",
+                "pocketsphinx==0.1.0",
+                "precise-runner==0.2.1",
+                "pyalsaaudio==0.8.2",
+                "python-vlc==1.1.2",
+                "pychromecast==3.2.2",
+                "google-api-python-client==1.6.4",
+                "gTTS>=2.2.0"]
+
     },
     packages=find_packages(include=['mycroft*']),
     include_package_data=True,
 
-    entry_points={
-        'console_scripts': [
-            'mycroft-speech-client=mycroft.client.speech.__main__:main',
-            'mycroft-messagebus=mycroft.messagebus.service.__main__:main',
-            'mycroft-skills=mycroft.skills.__main__:main',
-            'mycroft-audio=mycroft.audio.__main__:main',
-            'mycroft-echo-observer=mycroft.messagebus.client.ws:echo',
-            'mycroft-audio-test=mycroft.util.audio_test:main',
-            'mycroft-enclosure-client=mycroft.client.enclosure.__main__:main',
-            'mycroft-cli-client=mycroft.client.text.__main__:main'
-        ]
-    }
 )

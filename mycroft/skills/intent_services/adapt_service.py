@@ -20,7 +20,7 @@ from adapt.engine import IntentDeterminationEngine
 from adapt.intent import IntentBuilder
 
 from mycroft.util.log import LOG
-from .base import IntentMatch
+from mycroft.skills.intent_services.base import IntentMatch
 
 
 class AdaptIntent(IntentBuilder):

@@ -32,8 +32,8 @@ from difflib import SequenceMatcher
 import lingua_franca.parse
 from lingua_franca.lang import get_active_lang, get_primary_lang_code
 
-from .time import now_local
-from .log import LOG
+from mycroft.util.time import now_local
+from mycroft.util.log import LOG
 
 
 def _log_unsupported_language(language, supported_languages):

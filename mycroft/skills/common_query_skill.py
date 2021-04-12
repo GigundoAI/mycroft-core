@@ -14,7 +14,7 @@
 
 from enum import IntEnum
 from abc import ABC, abstractmethod
-from .mycroft_skill import MycroftSkill
+from mycroft.skills.mycroft_skill import MycroftSkill
 
 
 class CQSMatchLevel(IntEnum):

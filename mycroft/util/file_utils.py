@@ -24,7 +24,7 @@ from stat import S_ISREG, ST_MTIME, ST_MODE, ST_SIZE
 import tempfile
 
 import mycroft.configuration
-from .log import LOG
+from mycroft.util.log import LOG
 
 
 def resolve_resource_file(res_name):

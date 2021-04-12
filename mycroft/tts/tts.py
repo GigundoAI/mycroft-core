@@ -34,7 +34,7 @@ from mycroft.util import (
 from mycroft.util.log import LOG
 from mycroft.util.plugins import load_plugin
 from queue import Queue, Empty
-from .cache import hash_sentence, TextToSpeechCache
+from mycroft.tts.cache import hash_sentence, TextToSpeechCache
 
 
 _TTS_ENV = deepcopy(os.environ)
