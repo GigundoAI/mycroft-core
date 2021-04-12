@@ -30,13 +30,34 @@ The module does implement some useful functions like basic fuzzy matchin.
 from difflib import SequenceMatcher
 from warnings import warn
 
+# lingua_franca is optional, both lingua_franca and lingua_nostra are supported
+try:
+    try:
+        from lingua_nostra import get_default_lang, get_primary_lang_code
+        from lingua_nostra.parse import extract_number, extract_numbers, \
+            extract_duration, get_gender, normalize
+        from lingua_nostra.parse import extract_datetime as lf_extract_datetime
+        from lingua_nostra.time import now_local
+    except ImportError:
+        from lingua_franca import get_default_lang, get_primary_lang_code
+        from lingua_franca.parse import extract_number, extract_numbers, \
+            extract_duration, get_gender, normalize
+        from lingua_franca.parse import extract_datetime as lf_extract_datetime
+        from lingua_franca.time import now_local
+except ImportError:
+    def lingua_franca_error(*args, **kwargs):
+        raise ImportError("lingua_franca is not installed")
 
-from lingua_franca import get_default_lang, get_primary_lang_code
-from lingua_franca.parse import extract_number, extract_numbers, \
-    extract_duration, get_gender, normalize
-from lingua_franca.parse import extract_datetime as lf_extract_datetime
+    from mycroft.util.time import now_local
+    from mycroft.util.lang import get_default_lang
 
-from mycroft.util.time import now_local
+    def get_primary_lang_code():
+        return "en"
+
+    extract_number = extract_numbers = extract_duration = get_gender = \
+        normalize = lf_extract_datetime = lingua_franca_error
+
+
 from mycroft.util.log import LOG
 
 
