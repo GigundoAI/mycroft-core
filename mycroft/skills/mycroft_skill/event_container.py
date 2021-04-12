@@ -55,6 +55,13 @@ def create_wrapper(handler, skill_id, on_start, on_end, on_error):
     def wrapper(message):
         stopwatch = Stopwatch()
         try:
+            # TODO: Fix for real in mycroft-messagebus-client
+            # Makes sure the message type is consistent with the type declared
+            # in mycroft.messagebus and isinstance will work.
+            message = Message(message.msg_type,
+                              data=message.data,
+                              context=message.context)
+
             message = unmunge_message(message, skill_id)
             if on_start:
                 on_start(message)

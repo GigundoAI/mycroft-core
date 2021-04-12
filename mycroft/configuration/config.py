@@ -83,7 +83,7 @@ def translate_list(config, values):
 class LocalConf(dict):
     """Config dictionary from file."""
     def __init__(self, path):
-        super(LocalConf, self).__init__()
+        super().__init__()
         if path:
             self.path = path
             self.load_local(path)
@@ -124,7 +124,7 @@ class LocalConf(dict):
 class RemoteConf(LocalConf):
     """Config dictionary fetched from mycroft.ai."""
     def __init__(self, cache=None):
-        super(RemoteConf, self).__init__(None)
+        super().__init__(None)
         cache = cache or WEB_CONFIG_CACHE
         from mycroft.api import is_paired
         if not is_paired():
