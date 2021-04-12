@@ -32,20 +32,30 @@ except ImportError:
     def _default_tz():
         return tzlocal()
 
-    def now_local():
-        return to_local(datetime.now())
-
     def now_utc():
-        return to_utc(datetime.now())
+        return to_utc(datetime.utcnow())
 
-    def to_local(dt):
-        return to_system(dt)
+
+    def now_local(tz=None):
+        if not tz:
+            tz = default_timezone()
+        return datetime.now(tz)
+
 
     def to_utc(dt):
+        tzUTC = gettz("UTC")
         if dt.tzinfo:
-            return dt.astimezone(gettz("UTC"))
+            return dt.astimezone(tzUTC)
         else:
-            return dt.replace(tzinfo=gettz("UTC"))
+            return dt.replace(tzinfo=gettz("UTC")).astimezone(tzUTC)
+
+
+    def to_local(dt):
+        tz = default_timezone()
+        if dt.tzinfo:
+            return dt.astimezone(tz)
+        else:
+            return dt.replace(tzinfo=gettz("UTC")).astimezone(tz)
 
 
 def set_default_tz(tz=None):
