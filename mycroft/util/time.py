@@ -19,8 +19,33 @@ may not match the system locale.
 """
 from datetime import datetime
 from dateutil.tz import gettz, tzlocal
-from lingua_franca.time import now_utc, now_local, to_local, to_utc, \
-    default_timezone as _default_tz
+
+# lingua_franca is optional, both lingua_franca and lingua_nostra are supported
+try:
+    try:
+        from lingua_nostra.time import now_utc, now_local, to_local, to_utc, \
+            default_timezone as _default_tz
+    except ImportError:
+        from lingua_franca.time import now_utc, now_local, to_local, to_utc, \
+            default_timezone as _default_tz
+except ImportError:
+    def _default_tz():
+        return tzlocal()
+
+    def now_local():
+        return to_local(datetime.now())
+
+    def now_utc():
+        return to_utc(datetime.now())
+
+    def to_local(dt):
+        return to_system(dt)
+
+    def to_utc(dt):
+        if dt.tzinfo:
+            return dt.astimezone(gettz("UTC"))
+        else:
+            return dt.replace(tzinfo=gettz("UTC"))
 
 
 def set_default_tz(tz=None):

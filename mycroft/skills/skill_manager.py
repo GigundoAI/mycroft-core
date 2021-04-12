@@ -24,12 +24,13 @@ from mycroft.enclosure.api import EnclosureAPI
 from mycroft.configuration import Configuration
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
+from mycroft.util.lang import set_default_lang, load_languages
 from mycroft.skills.msm_wrapper import create_msm as msm_creator, build_msm_config
 from mycroft.skills.settings import SkillSettingsDownloader
 from mycroft.skills.skill_loader import SkillLoader
 from mycroft.skills.skill_updater import SkillUpdater
 
-from lingua_franca import load_languages, set_default_lang
+
 
 SKILL_MAIN_MODULE = '__init__.py'
 

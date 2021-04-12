@@ -18,5 +18,19 @@
 The mycroft.util.lang module provides the main interface for setting up the
 lingua-franca (https://github.com/mycroftai/lingua-franca) selected language
 """
+try:
+    from lingua_franca import set_default_lang, get_default_lang, load_languages
+except ImportError:
+    _lang = "en-us"
 
-from lingua_franca import set_default_lang, get_default_lang
+    def get_default_lang():
+        return _lang
+
+    def set_default_lang(lang):
+        global _lang
+        _lang = lang
+
+    def load_languages(*args, **kwargs):
+        pass
+
+
