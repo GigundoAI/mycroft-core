@@ -52,11 +52,13 @@ def create_enclosure(platform):
         LOG.info("Creating Mark II Enclosure")
         from mycroft.client.enclosure.mark2 import EnclosureMark2
         enclosure = EnclosureMark2()
+    elif platform and platform != "generic":
+        LOG.info("Creating dummy enclosure, platform='{}'".format(platform))
+        from mycroft.client.enclosure.base import Enclosure
+        enclosure = Enclosure()
     else:
+        # mycroft-core style generic enclosure, does more than it should!
         LOG.info("Creating generic enclosure, platform='{}'".format(platform))
-
-        # TODO: Mechanism to load from elsewhere.  E.g. read a script path from
-        # the mycroft.conf, then load/launch that script.
         from mycroft.client.enclosure.generic import EnclosureGeneric
         enclosure = EnclosureGeneric()
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 import asyncio
-
+import time
 from collections import namedtuple
 from threading import Lock
 
@@ -21,6 +21,7 @@ from mycroft.configuration import Configuration
 from mycroft.messagebus.client import MessageBusClient
 from mycroft.util import create_daemon, start_message_bus_client
 from mycroft.util.log import LOG
+from mycroft.api import is_paired
 
 import json
 import tornado.web as web
@@ -104,6 +105,52 @@ class Enclosure:
         self.bus.on("gui.clear.namespace", self.on_gui_delete_namespace)
         self.bus.on("gui.event.send", self.on_gui_send_event)
         self.bus.on("gui.status.request", self.handle_gui_status_request)
+
+        # TODO: this requires the Enclosure to be up and running before the
+        # training is complete.
+        self.bus.on('mycroft.skills.trained',
+                    self.handle_check_device_readiness)
+
+    def is_device_ready(self):
+        is_ready = False
+        # Bus service assumed to be alive if messages sent and received
+        # Enclosure assumed to be alive if this method is running
+        services = {'audio': False, 'speech': False, 'skills': False}
+        start = time.monotonic()
+        while not is_ready:
+            is_ready = self.check_services_ready(services)
+            if is_ready:
+                break
+            elif time.monotonic() - start >= 60:
+                raise Exception('Timeout waiting for services start.')
+            else:
+                time.sleep(3)
+        return is_ready
+
+    def handle_check_device_readiness(self, message):
+
+        def handle_ready(message=None):
+            if self.is_device_ready():
+                LOG.info("Mycroft is all loaded and ready to roll!")
+                self.bus.emit(Message('mycroft.ready'))
+
+        if not is_paired():
+            self.bus.once("mycroft.paired", handle_ready)
+        else:
+            handle_ready()
+
+    def check_services_ready(self, services):
+        """Report if all specified services are ready.
+
+        services (iterable): service names to check.
+        """
+        for ser in services:
+            services[ser] = False
+            response = self.bus.wait_for_response(Message(
+                'mycroft.{}.is_ready'.format(ser)))
+            if response and response.data['status']:
+                services[ser] = True
+        return all([services[ser] for ser in services])
 
     def run(self):
         """Start the Enclosure after it has been constructed."""
