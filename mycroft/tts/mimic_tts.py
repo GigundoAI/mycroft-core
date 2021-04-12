@@ -30,7 +30,7 @@ from mycroft.configuration import Configuration
 from mycroft.util.download import download
 from mycroft.util.log import LOG
 
-from .tts import TTS, TTSValidator
+from mycroft.tts.tts import TTS, TTSValidator
 
 CONFIG = Configuration.get().get("tts").get("mimic")
 DATA_DIR = expanduser(Configuration.get()['data_dir'])

@@ -23,7 +23,7 @@ from os.path import expanduser, isfile
 from mycroft.configuration import Configuration
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
-from .base import IntentMatch
+from mycroft.skills.intent_services.base import IntentMatch
 
 
 class PadatiousService:

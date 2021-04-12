@@ -19,7 +19,7 @@ import os
 import os.path
 
 import mycroft
-from .file_utils import ensure_directory_exists, create_file
+from mycroft.util.file_utils import ensure_directory_exists, create_file
 
 
 def get_ipc_directory(domain=None):
