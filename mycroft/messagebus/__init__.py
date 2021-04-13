@@ -14,4 +14,4 @@
 from mycroft.messagebus.client.client import MessageBusClient
 from mycroft.messagebus.message import Message
 from mycroft.messagebus.send_func import send
-from mycroft.messagebus.service.event_handler import MessageBusEventHandler
+#from mycroft.messagebus.service.event_handler import MessageBusEventHandler
