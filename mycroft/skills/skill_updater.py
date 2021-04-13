@@ -17,7 +17,7 @@ import os
 import sys
 from datetime import datetime
 from time import time
-from tempfile import gettempdir
+import xdg
 from msm import MsmException
 
 from mycroft.api import DeviceApi, is_paired
@@ -48,17 +48,15 @@ class SkillUpdater:
     _msm = None
 
     def __init__(self, bus=None):
+        self.msm_lock = ComboLock('/tmp/mycroft-msm.lck')
+        self.install_retries = 0
         self.config = Configuration.get()
         self.msm_disabled = self.config["skills"]["msm"].get("disabled") or \
                             False
-        self.msm_lock = ComboLock('/tmp/mycroft-msm.lck')
-        self.install_retries = 0
         update_interval = self.config['skills']['update_interval']
         self.update_interval = int(update_interval) * ONE_HOUR
-        if self.msm is not None:
-            self.dot_msm_path = os.path.join(gettempdir(), '.msm')
-        else:
-            self.dot_msm_path = os.path.join(self.msm.skills_dir, '.msm')
+        self.dot_msm_path = os.path.join(
+                xdg.BaseDirectory.save_data_path('mycroft/skills'), '.msm')
         self.next_download = self._determine_next_download_time()
         self._log_next_download_time()
         self.installed_skills = set()
