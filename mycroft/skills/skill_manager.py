@@ -18,6 +18,8 @@ from glob import glob
 from threading import Thread, Event, Lock
 from time import sleep, time, monotonic
 from inspect import signature
+import shutil
+import xdg
 
 from mycroft.api import is_paired
 from mycroft.enclosure.api import EnclosureAPI
@@ -269,7 +271,9 @@ class SkillManager(Thread):
 
     def _remove_git_locks(self):
         """If git gets killed from an abrupt shutdown it leaves lock files."""
-        for i in glob(os.path.join(self.msm.skills_dir, '*/.git/index.lock')):
+        for i in glob(os.path.join(
+            xdg.BaseDirectory.save_data_path('mycroft/skills'),
+                '*/.git/index.lock')):
             LOG.warning('Found and removed git lock file: ' + i)
             os.remove(i)
 
@@ -315,7 +319,8 @@ class SkillManager(Thread):
         return skill_loader if load_status else None
 
     def _get_skill_directories(self):
-        skill_glob = glob(os.path.join(self.msm.skills_dir, '*/'))
+        skill_glob = glob(os.path.join(
+            xdg.BaseDirectory.save_data_path('mycroft/skills'), '*/'))
 
         skill_directories = []
         for skill_dir in skill_glob:
