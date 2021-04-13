@@ -17,7 +17,7 @@ import os
 import sys
 from datetime import datetime
 from time import time
-
+from tempfile import gettempdir
 from msm import MsmException
 
 from mycroft.api import DeviceApi, is_paired
@@ -48,12 +48,17 @@ class SkillUpdater:
     _msm = None
 
     def __init__(self, bus=None):
+        self.config = Configuration.get()
+        self.msm_disabled = self.config["skills"]["msm"].get("disabled") or \
+                            False
         self.msm_lock = ComboLock('/tmp/mycroft-msm.lck')
         self.install_retries = 0
-        self.config = Configuration.get()
         update_interval = self.config['skills']['update_interval']
         self.update_interval = int(update_interval) * ONE_HOUR
-        self.dot_msm_path = os.path.join(self.msm.skills_dir, '.msm')
+        if self.msm is not None:
+            self.dot_msm_path = os.path.join(gettempdir(), '.msm')
+        else:
+            self.dot_msm_path = os.path.join(self.msm.skills_dir, '.msm')
         self.next_download = self._determine_next_download_time()
         self._log_next_download_time()
         self.installed_skills = set()
@@ -71,6 +76,8 @@ class SkillUpdater:
         Update immediately if the .msm or installed skills file is missing
         otherwise use the timestamp on .msm as a basis.
         """
+        if self.msm_disabled:
+            return time() + 999999
         msm_files_exist = (
                 os.path.exists(self.dot_msm_path) and
                 os.path.exists(self.installed_skills_file_path)
@@ -104,7 +111,7 @@ class SkillUpdater:
 
     @property
     def msm(self):
-        if self._msm is None:
+        if self._msm is None and not self.msm_disabled:
             msm_config = build_msm_config(self.config)
             self._msm = create_msm(msm_config)
 
@@ -113,6 +120,8 @@ class SkillUpdater:
     @property
     def default_skill_names(self) -> tuple:
         """Property representing the default skills expected to be installed"""
+        if self.msm_disabled:
+            return ()
         default_skill_groups = dict(self.msm.repo.get_default_skill_names())
         default_skills = set(default_skill_groups['default'])
         platform_default_skills = default_skill_groups.get(self.msm.platform)
@@ -144,6 +153,9 @@ class SkillUpdater:
         Args:
             quick (bool): Expedite the download by running with more threads?
         """
+        if self.msm_disabled:
+            return True
+
         LOG.info('Beginning skill update...')
         self.msm._device_skill_state = None  # TODO: Proper msm method
         success = True
@@ -176,6 +188,8 @@ class SkillUpdater:
 
     def _apply_install_or_update(self, quick):
         """Invoke MSM to install or update a skill."""
+        if self.msm_disabled:
+            return
         try:
             # Determine if all defaults are installed
             defaults = all(
@@ -195,7 +209,7 @@ class SkillUpdater:
     def post_manifest(self, reload_skills_manifest=False):
         """Post the manifest of the device's skills to the backend."""
         upload_allowed = self.config['skills'].get('upload_skill_manifest')
-        if upload_allowed and is_paired():
+        if not self.msm_disabled and upload_allowed and is_paired():
             if reload_skills_manifest:
                 self.msm.clear_cache()
             try:
@@ -230,6 +244,8 @@ class SkillUpdater:
         Returns:
             True if all default skills are installed, else False.
         """
+        if self.msm_disabled:
+            return True
         defaults = []
         for skill in self.msm.default_skills.values():
             if not skill_is_blacklisted(skill):
@@ -239,6 +255,8 @@ class SkillUpdater:
     def _get_device_skill_state(self, skill_name):
         """Get skill data structure from name."""
         device_skill_state = {}
+        if self.msm_disabled:
+            return device_skill_state
         for msm_skill_state in self.msm.device_skill_state.get('skills', []):
             if msm_skill_state.get('name') == skill_name:
                 device_skill_state = msm_skill_state
