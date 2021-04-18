@@ -22,21 +22,32 @@ frequently.  To improve performance, the MSM instance is cached.
 from collections import namedtuple
 from functools import lru_cache
 from os import path, makedirs
-
-from msm import MycroftSkillsManager, SkillRepo
+import xdg
 
 from mycroft.util.combo_lock import ComboLock
 from mycroft.util.log import LOG
+from mock_msm import \
+    MycroftSkillsManager as MockMSM, \
+    SkillRepo as MockSkillRepo
+
+try:
+    from msm.exceptions import MsmException
+    from msm import MycroftSkillsManager, SkillRepo
+except ImportError:
+    MycroftSkillsManager = MockMSM
+    SkillRepo = MockSkillRepo
+    from mock_msm.exceptions import MsmException
+
 
 MsmConfig = namedtuple(
     'MsmConfig',
     [
         'platform',
         'repo_branch',
-        'repo_cache',
         'repo_url',
-        'skills_dir',
-        'versioned'
+        'old_skills_dir',
+        'versioned',
+        'disabled'
     ]
 )
 
@@ -70,10 +81,10 @@ def build_msm_config(device_config: dict) -> MsmConfig:
     return MsmConfig(
         platform=enclosure_config.get('platform', 'default'),
         repo_branch=msm_repo_config['branch'],
-        repo_cache=path.join(data_dir, msm_repo_config['cache']),
         repo_url=msm_repo_config['url'],
-        skills_dir=path.join(data_dir, msm_config['directory']),
-        versioned=msm_config['versioned']
+        old_skills_dir=path.join(data_dir, msm_config['directory']),
+        versioned=msm_config['versioned'],
+        disabled=msm_config.get("disabled", False)
     )
 
 
@@ -86,6 +97,14 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     especially during the boot sequence when this function is called multiple
     times.
     """
+    if msm_config.disabled:
+        LOG.info("MSM is disabled, using mock_msm")
+        repo_clazz = MockSkillRepo
+        msm_clazz = MockMSM
+    else:
+        repo_clazz = SkillRepo
+        msm_clazz = MycroftSkillsManager
+
     if msm_config.repo_url != "https://github.com/MycroftAI/mycroft-skills":
         LOG.warning("You have enabled a third-party skill store.\n"
                     "Unable to guarantee the safety of skills from "
@@ -94,17 +113,15 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     msm_lock = _init_msm_lock()
     LOG.info('Acquiring lock to instantiate MSM')
     with msm_lock:
-        if not path.exists(msm_config.skills_dir):
-            makedirs(msm_config.skills_dir)
+        xdg.BaseDirectory.save_data_path('mycroft/skills')
 
-        msm_skill_repo = SkillRepo(
-            msm_config.repo_cache,
+        msm_skill_repo = repo_clazz(
             msm_config.repo_url,
             msm_config.repo_branch
         )
-        msm_instance = MycroftSkillsManager(
+        msm_instance = msm_clazz(
             platform=msm_config.platform,
-            skills_dir=msm_config.skills_dir,
+            old_skills_dir=msm_config.old_skills_dir,
             repo=msm_skill_repo,
             versioned=msm_config.versioned
         )

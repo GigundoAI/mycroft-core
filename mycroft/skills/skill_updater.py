@@ -18,14 +18,12 @@ import sys
 from datetime import datetime
 from time import time
 
-from msm import MsmException
-
 from mycroft.api import DeviceApi, is_paired
 from mycroft.configuration import Configuration
 from mycroft.util import connected
 from mycroft.util.combo_lock import ComboLock
 from mycroft.util.log import LOG
-from mycroft.skills.msm_wrapper import build_msm_config, create_msm
+from mycroft.skills.msm_wrapper import build_msm_config, create_msm, MsmException
 
 ONE_HOUR = 3600
 FIVE_MINUTES = 300  # number of seconds in a minute
