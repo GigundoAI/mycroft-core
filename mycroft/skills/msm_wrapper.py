@@ -23,10 +23,21 @@ from collections import namedtuple
 from functools import lru_cache
 from os import path, makedirs
 import xdg
-from msm import MycroftSkillsManager, SkillRepo
 
 from mycroft.util.combo_lock import ComboLock
 from mycroft.util.log import LOG
+from mock_msm import \
+    MycroftSkillsManager as MockMSM, \
+    SkillRepo as MockSkillRepo
+
+try:
+    from msm.exceptions import MsmException
+    from msm import MycroftSkillsManager, SkillRepo
+except ImportError:
+    MycroftSkillsManager = MockMSM
+    SkillRepo = MockSkillRepo
+    from mock_msm.exceptions import MsmException
+
 
 MsmConfig = namedtuple(
     'MsmConfig',
@@ -35,7 +46,8 @@ MsmConfig = namedtuple(
         'repo_branch',
         'repo_url',
         'old_skills_dir',
-        'versioned'
+        'versioned',
+        'disabled'
     ]
 )
 
@@ -71,7 +83,8 @@ def build_msm_config(device_config: dict) -> MsmConfig:
         repo_branch=msm_repo_config['branch'],
         repo_url=msm_repo_config['url'],
         old_skills_dir=path.join(data_dir, msm_config['directory']),
-        versioned=msm_config['versioned']
+        versioned=msm_config['versioned'],
+        disabled=msm_config.get("disabled", False)
     )
 
 
@@ -84,6 +97,14 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     especially during the boot sequence when this function is called multiple
     times.
     """
+    if msm_config.disabled:
+        LOG.info("MSM is disabled, using mock_msm")
+        repo_clazz = MockSkillRepo
+        msm_clazz = MockMSM
+    else:
+        repo_clazz = SkillRepo
+        msm_clazz = MycroftSkillsManager
+
     if msm_config.repo_url != "https://github.com/MycroftAI/mycroft-skills":
         LOG.warning("You have enabled a third-party skill store.\n"
                     "Unable to guarantee the safety of skills from "
@@ -94,11 +115,11 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     with msm_lock:
         xdg.BaseDirectory.save_data_path('mycroft/skills')
 
-        msm_skill_repo = SkillRepo(
+        msm_skill_repo = repo_clazz(
             msm_config.repo_url,
             msm_config.repo_branch
         )
-        msm_instance = MycroftSkillsManager(
+        msm_instance = msm_clazz(
             platform=msm_config.platform,
             old_skills_dir=msm_config.old_skills_dir,
             repo=msm_skill_repo,
