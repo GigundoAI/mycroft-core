@@ -23,10 +23,18 @@ from collections import namedtuple
 from functools import lru_cache
 from os import path, makedirs
 import xdg
-from msm import MycroftSkillsManager, SkillRepo
 
 from mycroft.util.combo_lock import ComboLock
 from mycroft.util.log import LOG
+
+try:
+    from msm.exceptions import MsmException
+    from msm import MycroftSkillsManager, SkillRepo
+except ImportError:
+    # does nothing, things just dont crash
+    from mock_msm import MycroftSkillsManager, SkillRepo
+    from mock_msm.exceptions import MsmException
+
 
 MsmConfig = namedtuple(
     'MsmConfig',
