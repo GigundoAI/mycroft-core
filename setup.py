@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mycroft-lib',
-    version="2021.4.2a12",
+    version="2021.4.2a14",
     license='Apache-2.0',
     url='https://github.com/HelloChatterbox/mycroft-lib',
     description='Mycroft packaged as a library',
@@ -27,6 +27,7 @@ setup(
                       "inflection",
                       "psutil",
                       "fasteners",
+                      "mock_msm",
                       "requests-futures"],
     extras_require={
         "lingua_franca": ["lingua_franca>=0.3.1"],
@@ -38,8 +39,7 @@ setup(
                    "padatious==0.4.8",
                    "fann2==1.0.7",
                    "padaos==0.1.9",
-                   "msm==0.9.0",
-                   "msk==0.3.16"],
+                   "msm==0.9.0"],
         "stt": ["SpeechRecognition==3.8.1",
                 "PyAudio==0.2.11",
                 "pocketsphinx==0.1.0",
@@ -55,7 +55,6 @@ setup(
                 "fann2==1.0.7",
                 "padaos==0.1.9",
                 "msm==0.9.0",
-                "msk==0.3.16",
                 "SpeechRecognition==3.8.1",
                 "PyAudio==0.2.11",
                 "pocketsphinx==0.1.0",
