@@ -33,6 +33,7 @@ setup(
         "lingua_nostra": ["lingua-nostra==0.4.0a2"],
         "bus": ["tornado==6.0.3"],
         "enclosure": ["tornado==6.0.3"],
+        "skills_minimal": ["adapt-parser>=0.3.7", "padaos==0.1.9"],
         "skills": ["adapt-parser>=0.3.7",
                    "padatious==0.4.8",
                    "fann2==1.0.7",
