@@ -20,8 +20,6 @@ directory.  The executable gets added to the bin directory when installed
 """
 import time
 
-from msm.exceptions import MsmException
-
 import mycroft.lock
 from mycroft import dialog
 from mycroft.api import is_paired, BackendDown, DeviceApi
@@ -43,6 +41,7 @@ from mycroft.skills.core import FallbackSkill
 from mycroft.skills.event_scheduler import EventScheduler
 from mycroft.skills.intent_service import IntentService
 from mycroft.skills.skill_manager import SkillManager
+from mycroft.skills.msm_wrapper import MsmException
 
 RASPBERRY_PI_PLATFORMS = ('mycroft_mark_1', 'picroft', 'mycroft_mark_2pi')
 
