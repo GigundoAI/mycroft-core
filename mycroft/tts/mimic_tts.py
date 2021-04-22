@@ -32,7 +32,7 @@ from mycroft.util.log import LOG
 
 from mycroft.tts.tts import TTS, TTSValidator
 
-CONFIG = Configuration.get().get("tts").get("mimic")
+CONFIG = Configuration.get().get("tts", {}).get("mimic", {})
 DATA_DIR = expanduser(Configuration.get()['data_dir'])
 
 BIN = CONFIG.get("path",
