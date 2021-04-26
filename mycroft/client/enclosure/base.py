@@ -132,7 +132,7 @@ class Enclosure:
         def handle_ready(message=None):
             if self.is_device_ready():
                 LOG.info("Mycroft is all loaded and ready to roll!")
-            self.bus.emit(Message('mycroft.ready'))
+                self.bus.emit(Message('mycroft.ready'))
 
         if not is_paired():
             self.bus.once("mycroft.paired", handle_ready)
