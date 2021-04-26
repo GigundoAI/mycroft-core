@@ -21,6 +21,7 @@ from mycroft.configuration import Configuration
 from mycroft.messagebus.client import MessageBusClient
 from mycroft.util import create_daemon, start_message_bus_client
 from mycroft.util.log import LOG
+from mycroft.api import is_paired
 
 import json
 import tornado.web as web
@@ -107,9 +108,10 @@ class Enclosure:
 
         # TODO: this requires the Enclosure to be up and running before the
         # training is complete.
-        self.bus.on('mycroft.skills.trained', self.is_device_ready)
+        self.bus.on('mycroft.skills.trained',
+                    self.handle_check_device_readiness)
 
-    def is_device_ready(self, message):
+    def is_device_ready(self):
         is_ready = False
         # Bus service assumed to be alive if messages sent and received
         # Enclosure assumed to be alive if this method is running
@@ -123,12 +125,19 @@ class Enclosure:
                 raise Exception('Timeout waiting for services start.')
             else:
                 time.sleep(3)
+        return is_ready
 
-        if is_ready:
-            LOG.info("Mycroft is all loaded and ready to roll!")
+    def handle_check_device_readiness(self, message):
+
+        def handle_ready(message=None):
+            if self.is_device_ready():
+                LOG.info("Mycroft is all loaded and ready to roll!")
             self.bus.emit(Message('mycroft.ready'))
 
-        return is_ready
+        if not is_paired():
+            self.bus.once("mycroft.paired", handle_ready)
+        else:
+            handle_ready()
 
     def check_services_ready(self, services):
         """Report if all specified services are ready.
