@@ -485,7 +485,7 @@ class IntentService:
         entity['match'] = word
         entity['key'] = word
         entity['origin'] = origin
-        self.adapt_service.context_manager.inject_context(entity)
+        self.adapt_service.add_context(entity)
 
     def handle_remove_context(self, message):
         """Remove specific context
@@ -499,7 +499,7 @@ class IntentService:
 
     def handle_clear_context(self, _):
         """Clears all keywords from context """
-        self.adapt_service.context_manager.clear_context()
+        self.adapt_service.reset_context()
 
     def handle_get_intent(self, message):
         """Get intent from either adapt or padatious.
