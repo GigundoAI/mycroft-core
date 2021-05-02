@@ -142,11 +142,9 @@ class DevicePrimer:
         Pairing cannot be performed if there is no connection to the back end.
         So skip pairing if the backend is down.
         """
-        # TODO fix this, sending hardcoded utterances in english is NOT GOOD
         if not self.is_paired and not self.backend_down:
             LOG.info('Device not paired, invoking the pairing skill')
-            payload = dict(utterances=["pair my device"], lang="en-us")
-            self.bus.emit(Message("recognizer_loop:utterance", payload))
+            self.bus.emit(Message("mycroft.not.paired"))
 
     def _update_device_attributes_on_backend(self):
         """Communicate version information to the backend.
