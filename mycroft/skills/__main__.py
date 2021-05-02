@@ -48,13 +48,14 @@ from mycroft.skills.msm_wrapper import MsmException
 RASPBERRY_PI_PLATFORMS = ('mycroft_mark_1', 'picroft', 'mycroft_mark_2pi')
 
 
-class DevicePrimer(object):
+class DevicePrimer:
     """Container handling the device preparation.
 
     Arguments:
         message_bus_client: Bus client used to interact with the system
         config (dict): Mycroft configuration
     """
+
     def __init__(self, message_bus_client, config):
         self.bus = message_bus_client
         self.platform = config['enclosure'].get("platform", "unknown")
@@ -69,23 +70,28 @@ class DevicePrimer(object):
         self.enclosure = EnclosureAPI(self.bus)
         self.is_paired = False
         self.backend_down = False
-        # Remember "now" at startup.  Used to detect clock changes.
 
     def prepare_device(self):
         """Internet dependent updates of various aspects of the device."""
-        self._get_pairing_status()
-        self._update_system_clock()
-        self._update_system()
-        # Above will block during update process and kill this instance if
-        # new software is installed
+        if connected():
+            self._get_pairing_status()
+            self._update_system_clock()
+            self._update_system()
+            # Above will block during update process and kill this instance if
+            # new software is installed
 
-        if self.backend_down:
-            self._notify_backend_down()
+            if self.backend_down:
+                self._notify_backend_down()
+            else:
+                self._display_skill_loading_notification()
+                self.bus.emit(Message('mycroft.internet.connected'))
+                self._ensure_device_is_paired()
+                self._update_device_attributes_on_backend()
         else:
-            self._display_skill_loading_notification()
-            self.bus.emit(Message('mycroft.internet.connected'))
-            self._ensure_device_is_paired()
-            self._update_device_attributes_on_backend()
+            LOG.warning('Cannot prime device because there is no '
+                        'internet connection, this is OK 99% of the time, '
+                        'but it might affect integration with mycroft '
+                        'backend')
 
     def _get_pairing_status(self):
         """Set an instance attribute indicating the device's pairing status"""
@@ -136,6 +142,7 @@ class DevicePrimer(object):
         Pairing cannot be performed if there is no connection to the back end.
         So skip pairing if the backend is down.
         """
+        # TODO fix this, sending hardcoded utterances in english is NOT GOOD
         if not self.is_paired and not self.backend_down:
             LOG.info('Device not paired, invoking the pairing skill')
             payload = dict(utterances=["pair my device"], lang="en-us")
@@ -227,7 +234,9 @@ def main(alive_hook=on_alive, started_hook=on_started, ready_hook=on_ready,
     skill_manager = _initialize_skill_manager(bus, watchdog)
 
     status.set_started()
-    _wait_for_internet_connection()
+
+    if config["skills"].get("wait_for_internet"):
+        _wait_for_internet_connection()
 
     if skill_manager is None:
         skill_manager = _initialize_skill_manager(bus, watchdog)
