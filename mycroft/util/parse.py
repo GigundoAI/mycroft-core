@@ -31,15 +31,22 @@ from difflib import SequenceMatcher
 from warnings import warn
 
 # lingua_franca is optional, both lingua_franca and lingua_nostra are supported
+# if both are installed preference is given to LN
+# "setters" will be set in both lbs
+# LN should be functionality equivalent to LF
+# API wont change, but hopefully LN will work better
+# (LN would not exist if it wasn't needed/changes accepted upstream)
+
+
+from mycroft.util.lang import get_default_lang, get_primary_lang_code
+
 try:
     try:
-        from lingua_nostra import get_default_lang, get_primary_lang_code
         from lingua_nostra.parse import extract_number, extract_numbers, \
             extract_duration, get_gender, normalize
         from lingua_nostra.parse import extract_datetime as lf_extract_datetime
         from lingua_nostra.time import now_local
     except ImportError:
-        from lingua_franca import get_default_lang, get_primary_lang_code
         from lingua_franca.parse import extract_number, extract_numbers, \
             extract_duration, get_gender, normalize
         from lingua_franca.parse import extract_datetime as lf_extract_datetime

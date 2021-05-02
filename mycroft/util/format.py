@@ -29,11 +29,18 @@ import warnings
 from calendar import leapdays
 from enum import Enum
 
-# These are the main functions we are using lingua franca to provide
 # lingua_franca is optional, both lingua_franca and lingua_nostra are supported
+# if both are installed preference is given to LN
+# "setters" will be set in both lbs
+# LN should be functionality equivalent to LF
+# API wont change, but hopefully LN will work better
+# (LN would not exist if it wasn't needed/changes accepted upstream)
+
+
+from mycroft.util.lang import get_default_lang
+
 try:
     try:
-        from lingua_nostra import get_default_lang
         from lingua_nostra.format import (NUMBER_TUPLE, DateTimeFormat,
                                           join_list,
                                           date_time_format, expand_options,
@@ -42,7 +49,6 @@ try:
                                           pronounce_number,
                                           nice_date, nice_date_time, nice_year)
     except ImportError:
-        from lingua_franca import get_default_lang
         # These are the main functions we are using lingua franca to provide
         from lingua_franca.format import (NUMBER_TUPLE, DateTimeFormat,
                                           join_list,
@@ -55,7 +61,6 @@ except ImportError:
     def lingua_franca_error(*args, **kwargs):
         raise ImportError("lingua_franca is not installed")
 
-    from mycroft.util.lang import get_default_lang
     from mycroft.util.bracket_expansion import expand_options
 
     NUMBER_TUPLE, DateTimeFormat = None, None

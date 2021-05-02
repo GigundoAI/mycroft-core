@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mycroft-lib',
-    version="2021.4.2a14",
+    version="2021.4.2a15",
     license='Apache-2.0',
     url='https://github.com/HelloChatterbox/mycroft-lib',
     description='Mycroft packaged as a library',
@@ -31,7 +31,7 @@ setup(
                       "requests-futures"],
     extras_require={
         "lingua_franca": ["lingua_franca>=0.3.1"],
-        "lingua_nostra": ["lingua-nostra==0.4.0a2"],
+        "lingua_nostra": ["lingua-nostra>=0.4.0a3"],
         "bus": ["tornado==6.0.3"],
         "enclosure": ["tornado==6.0.3"],
         "skills_minimal": ["adapt-parser>=0.3.7", "padaos==0.1.9"],
