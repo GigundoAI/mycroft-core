@@ -18,18 +18,19 @@ from glob import glob
 from threading import Thread, Event, Lock
 from time import sleep, time, monotonic
 from inspect import signature
+import xdg
 
 from mycroft.api import is_paired
 from mycroft.enclosure.api import EnclosureAPI
 from mycroft.configuration import Configuration
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
+from mycroft.util import connected
 from mycroft.util.lang import set_default_lang, load_languages
 from mycroft.skills.msm_wrapper import create_msm as msm_creator, build_msm_config
 from mycroft.skills.settings import SkillSettingsDownloader
 from mycroft.skills.skill_loader import SkillLoader
 from mycroft.skills.skill_updater import SkillUpdater
-
 
 
 SKILL_MAIN_MODULE = '__init__.py'
@@ -84,7 +85,7 @@ class UploadQueue:
             LOG.info('Updating settings meta during runtime...')
         with self.lock:
             # Remove existing loader
-            self._queue == [e for e in self._queue if e != loader]
+            self._queue = [e for e in self._queue if e != loader]
             self._queue.append(loader)
 
 
@@ -126,7 +127,6 @@ class SkillManager(Thread):
         # Set watchdog to argument or function returning None
         self._watchdog = watchdog or (lambda: None)
         self._stop_event = Event()
-        self._connected_event = Event()
         self.config = Configuration.get()
         self.upload_queue = UploadQueue()
 
@@ -153,12 +153,6 @@ class SkillManager(Thread):
         """Define message bus events with handlers defined in this class."""
         # Conversation management
         self.bus.on('skill.converse.request', self.handle_converse_request)
-
-        # Update on initial connection
-        self.bus.on(
-            'mycroft.internet.connected',
-            lambda x: self._connected_event.set()
-        )
 
         # Update upon request
         self.bus.on('skillmanager.update', self.schedule_now)
@@ -233,7 +227,10 @@ class SkillManager(Thread):
     def run(self):
         """Load skills and update periodically from disk and internet."""
         self._remove_git_locks()
-        self._connected_event.wait()
+        if self.skills_config.get("wait_for_internet", True):
+            while not connected():
+                sleep(1)
+
         if (not self.skill_updater.defaults_installed() and
                 self.skills_config["auto_update"]):
             LOG.info('Not all default skills are installed, '
@@ -269,7 +266,9 @@ class SkillManager(Thread):
 
     def _remove_git_locks(self):
         """If git gets killed from an abrupt shutdown it leaves lock files."""
-        for i in glob(os.path.join(self.msm.skills_dir, '*/.git/index.lock')):
+        for i in glob(os.path.join(
+            xdg.BaseDirectory.save_data_path('mycroft/skills'),
+                '*/.git/index.lock')):
             LOG.warning('Found and removed git lock file: ' + i)
             os.remove(i)
 
@@ -315,8 +314,8 @@ class SkillManager(Thread):
         return skill_loader if load_status else None
 
     def _get_skill_directories(self):
-        skill_glob = glob(os.path.join(self.msm.skills_dir, '*/'))
-
+        skill_glob = glob(os.path.join(
+            xdg.BaseDirectory.save_data_path('mycroft/skills'), '*/'))
         skill_directories = []
         for skill_dir in skill_glob:
             # TODO: all python packages must have __init__.py!  Better way?
