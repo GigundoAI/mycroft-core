@@ -596,7 +596,7 @@ class MycroftSkill:
                 if self.voc_match(resp, 'last'):
                     resp = options[-1]
                 else:
-                    num = extract_number(resp, self.lang, ordinals=True)
+                    num = extract_number(resp, lang=self.lang, ordinals=True)
                     resp = None
                     if num and num <= len(options):
                         resp = options[num - 1]
