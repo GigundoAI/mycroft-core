@@ -23,7 +23,8 @@ from mycroft.util.json_helper import load_commented_json, merge_dict
 from mycroft.util.log import LOG
 
 from mycroft.configuration.locations import (DEFAULT_CONFIG, SYSTEM_CONFIG,
-                                             USER_CONFIG, WEB_CONFIG_CACHE)
+                                             OLD_USER_CONFIG, WEB_CONFIG_CACHE,
+                                             USER_CONFIG)
 
 
 def is_remote_list(values):
@@ -217,8 +218,8 @@ class Configuration:
         """
         if not configs:
             configs = [LocalConf(DEFAULT_CONFIG), RemoteConf(),
-                       LocalConf(SYSTEM_CONFIG), LocalConf(USER_CONFIG),
-                       Configuration.__patch]
+                       LocalConf(SYSTEM_CONFIG), LocalConf(OLD_USER_CONFIG),
+                       LocalConf(USER_CONFIG), Configuration.__patch]
         else:
             # Handle strings in stack
             for index, item in enumerate(configs):
