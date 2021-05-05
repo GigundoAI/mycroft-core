@@ -22,7 +22,7 @@ frequently.  To improve performance, the MSM instance is cached.
 from collections import namedtuple
 from functools import lru_cache
 from os import path, makedirs
-import xdg
+from xdg import BaseDirectory as XDG
 
 from mycroft.util.combo_lock import ComboLock
 from mycroft.util.log import LOG
@@ -113,7 +113,7 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     msm_lock = _init_msm_lock()
     LOG.info('Acquiring lock to instantiate MSM')
     with msm_lock:
-        xdg.BaseDirectory.save_data_path('mycroft/skills')
+        XDG.save_data_path('mycroft/skills')
 
         msm_skill_repo = repo_clazz(
             msm_config.repo_url,

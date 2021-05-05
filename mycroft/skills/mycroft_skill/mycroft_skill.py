@@ -24,7 +24,7 @@ from os.path import join, abspath, dirname, basename, exists
 from pathlib import Path
 from threading import Event, Timer
 
-from xdg import BaseDirectory
+from xdg import BaseDirectory as XDG
 
 from adapt.intent import Intent, IntentBuilder
 
@@ -175,7 +175,7 @@ class MycroftSkill:
 
         # Otherwise save to XDG_CONFIG_DIR
         if not self.settings_write_path.joinpath('settings.json').exists():
-            self.settings_write_path = Path(BaseDirectory.save_config_path(
+            self.settings_write_path = Path(XDG.save_config_path(
                 'mycroft', 'skills', basename(self.root_dir)))
 
         # To not break existing setups,
@@ -184,11 +184,9 @@ class MycroftSkill:
 
         # Then, check XDG_CONFIG_DIR
         if not settings_read_path.joinpath('settings.json').exists():
-            for dir in BaseDirectory.load_config_paths('mycroft',
-                                                       'skills',
-                                                       basename(
-                                                           self.root_dir)):
-                path = Path(dir)
+            for path in XDG.load_config_paths('mycroft', 'skills',
+                                              basename(self.root_dir)):
+                path = Path(path)
                 # If there is a settings file here, use it
                 if path.joinpath('settings.json').exists():
                     settings_read_path = path
