@@ -17,6 +17,7 @@ import os
 import sys
 from datetime import datetime
 from time import time
+from xdg import BaseDirectory as XDG
 
 from mycroft.api import DeviceApi, is_paired
 from mycroft.configuration import Configuration
@@ -94,9 +95,8 @@ class SkillUpdater:
                     '.mycroft-skills'
                 )
             else:
-                self._installed_skills_file_path = os.path.expanduser(
-                    '~/.mycroft/.mycroft-skills'
-                )
+                self._installed_skills_file_path = os.path.join(
+                    XDG.save_data_path('mycroft'), '.mycroft-skills')
 
         return self._installed_skills_file_path
 
