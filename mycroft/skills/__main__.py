@@ -19,7 +19,6 @@ directory.  The executable gets added to the bin directory when installed
 (see setup.py)
 """
 import time
-from threading import Event
 
 from msm.exceptions import MsmException
 
@@ -205,6 +204,15 @@ def main(alive_hook=on_alive, started_hook=on_started, ready_hook=on_ready,
     reset_sigint_handler()
     # Create PID file, prevent multiple instances of this service
     mycroft.lock.Lock('skills')
+
+    callbacks = StatusCallbackMap(on_started=started_hook,
+                                  on_alive=alive_hook,
+                                  on_ready=ready_hook,
+                                  on_error=error_hook,
+                                  on_stopping=stopping_hook)
+    status = ProcessStatus('skills', callback_map=callbacks)
+    status.set_started()
+
     config = Configuration.get()
     setup_locale()
 
@@ -212,17 +220,13 @@ def main(alive_hook=on_alive, started_hook=on_started, ready_hook=on_ready,
     bus = start_message_bus_client("SKILLS")
     _register_intent_services(bus)
     event_scheduler = EventScheduler(bus)
-    callbacks = StatusCallbackMap(on_started=started_hook,
-                                  on_alive=alive_hook,
-                                  on_ready=ready_hook,
-                                  on_error=error_hook,
-                                  on_stopping=stopping_hook)
-    status = ProcessStatus('skills', bus, callbacks)
 
     SkillApi.connect_bus(bus)
     skill_manager = _initialize_skill_manager(bus, watchdog)
 
-    status.set_started()
+    status.bind(bus)
+    status.set_alive()
+
     _wait_for_internet_connection()
 
     if skill_manager is None:
@@ -233,7 +237,6 @@ def main(alive_hook=on_alive, started_hook=on_started, ready_hook=on_ready,
     skill_manager.start()
     while not skill_manager.is_alive():
         time.sleep(0.1)
-    status.set_alive()
 
     while not skill_manager.is_all_loaded():
         time.sleep(0.1)
