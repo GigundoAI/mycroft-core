@@ -1,8 +1,8 @@
 requests
 pyee
-lingua-nostra==0.4.0a2
+lingua-nostra>=0.4.2
 pyxdg
-mycroft-messagebus-client>=0.9.1
+mycroft-messagebus-client==0.9.1
 inflection
 psutil
 fasteners
