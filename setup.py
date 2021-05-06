@@ -15,11 +15,11 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='mycroft-lib',
-    version="2021.4.2a15",
+    name='HolmesV',
+    version="2021.5.6a1",
     license='Apache-2.0',
-    url='https://github.com/HelloChatterbox/mycroft-lib',
-    description='Mycroft packaged as a library',
+    url='https://github.com/HelloChatterbox/HolmesV',
+    description='mycroft-core packaged as a library you can rely on',
     install_requires=["requests",
                       "pyee",
                       "pyxdg",
@@ -44,8 +44,8 @@ setup(
                 "pocketsphinx==0.1.0",
                 "precise-runner==0.2.1"],
         "mark1": ["pyalsaaudio==0.8.2"],
-        "audio": ["python-vlc==1.1.2"],
-        "audio_engines": ["pychromecast==3.2.2"],
+        "audio": [],
+        "audio_engines": ["pychromecast==3.2.2", "python-vlc==1.1.2"],
         "stt_engines": ["google-api-python-client==1.6.4"],
         "tts_engines": ["gTTS>=2.2.0"],
         "all": ["tornado==6.0.3",
