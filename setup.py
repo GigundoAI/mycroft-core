@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='HolmesV',
-    version="2021.5.6a10",
+    version="2021.5.6a11",
     license='Apache-2.0',
     url='https://github.com/HelloChatterbox/HolmesV',
     description='mycroft-core packaged as a library you can rely on',
@@ -73,7 +73,7 @@ setup(
                 "padatious==0.4.8",
                 "fann2==1.0.7",
                 "padaos==0.1.9",
-                "lingua-nostra>=0.4.0a4",
+                "lingua-nostra>=0.4.2",
                 "mock_msm",
                 "SpeechRecognition==3.8.1",
                 "PyAudio==0.2.11",
