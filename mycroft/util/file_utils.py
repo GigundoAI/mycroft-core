@@ -22,6 +22,7 @@ import os
 import psutil
 from stat import S_ISREG, ST_MTIME, ST_MODE, ST_SIZE
 import tempfile
+from xdg import BaseDirectory as XDG
 
 import mycroft.configuration
 from mycroft.util.log import LOG
@@ -33,20 +34,18 @@ def resolve_resource_file(res_name):
     Resource names are in the form: 'filename.ext'
     or 'path/filename.ext'
 
-    The system wil look for ~/.mycroft/res_name first, and
-    if not found will look at /opt/mycroft/res_name,
-    then finally it will look for res_name in the 'mycroft/res'
-    folder of the source code package.
+    The system wil look for $XDG_DATA_DIRS/mycroft/res_name first
+    (defaults to ~/.local/share/mycroft/res_name), and if not found will
+    look at /opt/mycroft/res_name, then finally it will look for res_name
+    in the 'mycroft/res' folder of the source code package.
 
     Example:
-        With mycroft running as the user 'bob', if you called
-        ``resolve_resource_file('snd/beep.wav')``
-        it would return either:
-        '/home/bob/.mycroft/snd/beep.wav' or
-        '/opt/mycroft/snd/beep.wav' or
-        '.../mycroft/res/snd/beep.wav'
-        where the '...' is replaced by the path
-        where the package has been installed.
+    With mycroft running as the user 'bob', if you called
+        resolve_resource_file('snd/beep.wav')
+    it would return either '/home/bob/.local/share/mycroft/snd/beep.wav' or
+    '/opt/mycroft/snd/beep.wav' or '.../mycroft/res/snd/beep.wav',
+    where the '...' is replaced by the path where the package has
+    been installed.
 
     Args:
         res_name (str): a resource path/name
@@ -60,8 +59,14 @@ def resolve_resource_file(res_name):
     if os.path.isfile(res_name):
         return res_name
 
-    # Now look for ~/.mycroft/res_name (in user folder)
-    filename = os.path.expanduser("~/.mycroft/" + res_name)
+    # Now look for XDG_DATA_DIRS
+    for path in XDG.load_data_paths('mycroft'):
+        filename = os.path.join(path, res_name)
+        if os.path.isfile(filename):
+            return filename
+
+    # Now look in the old user location
+    filename = os.path.join(os.path.expanduser('~'), '.mycroft', res_name)
     if os.path.isfile(filename):
         return filename
 
@@ -230,11 +235,14 @@ def get_cache_directory(domain=None):
     Returns:
         (str) a path to the directory where you can cache data
     """
-    config = mycroft.configuration.Configuration.get()
+    config = mycroft.configuration.Configuration.get(remote=False)
     directory = config.get("cache_path")
     if not directory:
-        # If not defined, use /tmp/mycroft/cache
-        directory = get_temp_path('mycroft', 'cache')
+        if config.get("disable_xdg", True):
+            # If not defined, use /tmp/mycroft/cache
+            directory = get_temp_path(get_xdg_base(), 'cache')
+        else:
+            directory = os.path.join(XDG.xdg_data_home, "mycroft", "cache")
     return ensure_directory_exists(directory, domain)
 
 

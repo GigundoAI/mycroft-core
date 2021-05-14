@@ -17,13 +17,16 @@
 import re
 import json
 import inflection
-from os.path import exists, isfile
+from os.path import exists, isfile, join
 from requests import RequestException
+from xdg import BaseDirectory as XDG
+
 from mycroft.util.json_helper import load_commented_json, merge_dict
 from mycroft.util.log import LOG
 
 from mycroft.configuration.locations import (DEFAULT_CONFIG, SYSTEM_CONFIG,
-                                             USER_CONFIG, WEB_CONFIG_CACHE)
+                                             OLD_USER_CONFIG, WEB_CONFIG_CACHE,
+                                             USER_CONFIG)
 
 
 def is_remote_list(values):
@@ -82,6 +85,7 @@ def translate_list(config, values):
 
 class LocalConf(dict):
     """Config dictionary from file."""
+
     def __init__(self, path):
         super(LocalConf, self).__init__()
         if path:
@@ -123,17 +127,21 @@ class LocalConf(dict):
 
 class RemoteConf(LocalConf):
     """Config dictionary fetched from mycroft.ai."""
+
     def __init__(self, cache=None):
         super(RemoteConf, self).__init__(None)
+
         cache = cache or WEB_CONFIG_CACHE
-        from mycroft.api import is_paired
-        if not is_paired():
-            self.load_local(cache)
-            return
+
         try:
             # Here to avoid cyclic import
+            from mycroft.api import is_paired
             from mycroft.api import DeviceApi
             from mycroft.api import is_backend_disabled
+
+            if not is_paired():
+                self.load_local(cache)
+                return
 
             if is_backend_disabled():
                 # disable options that require backend
@@ -186,7 +194,7 @@ class Configuration:
     __patch = {}  # Patch config that skills can update to override config
 
     @staticmethod
-    def get(configs=None, cache=True):
+    def get(configs=None, cache=True, remote=True):
         """Get configuration
 
         Returns cached instance if available otherwise builds a new
@@ -195,6 +203,9 @@ class Configuration:
         Args:
             configs (list): List of configuration dicts
             cache (boolean): True if the result should be cached
+            remote (boolean): False if the Mycroft Home settings shouldn't
+                              be loaded
+
 
         Returns:
             (dict) configuration dictionary.
@@ -202,23 +213,73 @@ class Configuration:
         if Configuration.__config:
             return Configuration.__config
         else:
-            return Configuration.load_config_stack(configs, cache)
+            return Configuration.load_config_stack(configs, cache, remote)
 
     @staticmethod
-    def load_config_stack(configs=None, cache=False):
+    def load_config_stack(configs=None, cache=False, remote=True):
         """Load a stack of config dicts into a single dict
 
         Args:
             configs (list): list of dicts to load
             cache (boolean): True if result should be cached
-
+            remote (boolean): False if the Mycroft Home settings shouldn't
+                              be loaded
         Returns:
             (dict) merged dict of all configuration files
         """
+
         if not configs:
-            configs = [LocalConf(DEFAULT_CONFIG), RemoteConf(),
-                       LocalConf(SYSTEM_CONFIG), LocalConf(USER_CONFIG),
-                       Configuration.__patch]
+            configs = configs or []
+
+            # first let's load all non XDG configs, and check if XDG is disabled
+            # TODO deprecate this once mycroft-core supports XDG
+            _config = Configuration.load_config_stack(
+                [DEFAULT_CONFIG, SYSTEM_CONFIG, OLD_USER_CONFIG],
+                cache=False, remote=False)
+
+            # First use the patched config
+            configs.append(Configuration.__patch)
+
+            if _config.get("disable_xdg"):
+                # Then check the old user config
+                configs.append(LocalConf(OLD_USER_CONFIG))
+            else:
+                # Then use XDG config
+                # This includes both the user config and
+                # /etc/xdg/mycroft/mycroft.conf
+                for p in XDG.load_config_paths('mycroft'):
+                    configs.append(LocalConf(join(p, 'mycroft.conf')))
+
+                # Then check the old user config
+                if isfile(OLD_USER_CONFIG):
+                    LOG.warning(" ===============================================")
+                    LOG.warning(" ==             DEPRECATION WARNING           ==")
+                    LOG.warning(" ===============================================")
+                    LOG.warning(" You still have a config file at " +
+                                OLD_USER_CONFIG)
+                    LOG.warning(" Note that this location is deprecated and will" +
+                                " not be used in the future")
+                    LOG.warning(" Please move it to " +
+                                join(XDG.xdg_config_home, 'mycroft'))
+                    configs.append(LocalConf(OLD_USER_CONFIG))
+
+                # Then check the XDG user config
+                if isfile(USER_CONFIG):
+                    configs.append(LocalConf(USER_CONFIG))
+
+            # Then use remote config
+            if remote:
+                configs.append(RemoteConf())
+
+            # Then use the system config (/etc/mycroft/mycroft.conf)
+            configs.append(LocalConf(SYSTEM_CONFIG))
+
+            # Then use the config that comes with the package
+            configs.append(LocalConf(DEFAULT_CONFIG))
+
+            # Make sure we reverse the array, as merge_dict will put every new
+            # file on top of the previous one
+            configs = reversed(configs)
         else:
             # Handle strings in stack
             for index, item in enumerate(configs):

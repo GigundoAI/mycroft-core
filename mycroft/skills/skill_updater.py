@@ -17,6 +17,7 @@ import os
 import sys
 from datetime import datetime
 from time import time
+from xdg import BaseDirectory as XDG
 
 from mycroft.api import DeviceApi, is_paired
 from mycroft.configuration import Configuration
@@ -95,9 +96,13 @@ class SkillUpdater:
                     '.mycroft-skills'
                 )
             else:
-                self._installed_skills_file_path = os.path.expanduser(
-                    '~/.mycroft/.mycroft-skills'
-                )
+                conf = Configuration.get(remote=False)
+                if conf.get("disable_xdg"):
+                    self._installed_skills_file_path = os.path.expanduser(
+                        '~/.mycroft/.mycroft-skills')
+                else:
+                    self._installed_skills_file_path = os.path.join(
+                        XDG.xdg_data_home, 'mycroft', '.mycroft-skills')
 
         return self._installed_skills_file_path
 
