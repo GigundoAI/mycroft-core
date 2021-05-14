@@ -24,7 +24,7 @@ from functools import lru_cache
 from os import path, makedirs
 from xdg import BaseDirectory as XDG
 
-from mycroft.util.combo_lock import ComboLock
+from combo_lock import ComboLock
 from mycroft.util.log import LOG
 from mock_msm import \
     MycroftSkillsManager as MockMSM, \

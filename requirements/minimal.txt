@@ -5,5 +5,5 @@ pyxdg
 mycroft-messagebus-client==0.9.1
 inflection
 psutil
-fasteners
+combo_lock
 requests-futures

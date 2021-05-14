@@ -12,7 +12,7 @@ pocketsphinx==0.1.0
 inflection==0.3.1
 pillow==8.1.1
 python-dateutil==2.6.0
-fasteners==0.14.1
+combo_lock
 PyYAML==5.4
 
 lingua-nostra==0.4.0a2
