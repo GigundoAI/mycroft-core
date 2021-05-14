@@ -14,14 +14,18 @@
 import os
 from time import sleep
 from os.path import join, dirname, expanduser, exists
+from xdg import BaseDirectory as XDG
 
 DEFAULT_CONFIG = join(dirname(__file__), 'mycroft.conf')
 SYSTEM_CONFIG = os.environ.get('MYCROFT_SYSTEM_CONFIG',
                                '/etc/mycroft/mycroft.conf')
-USER_CONFIG = join(expanduser('~'), '.mycroft/mycroft.conf')
+# Make sure we support the old location still
+# Deprecated and will be removed eventually
+OLD_USER_CONFIG = join(expanduser('~'), '.mycroft/mycroft.conf')
+USER_CONFIG = join(XDG.xdg_config_home, 'mycroft', 'mycroft.conf')
+
 REMOTE_CONFIG = "mycroft.ai"
-WEB_CONFIG_CACHE = os.environ.get('MYCROFT_WEB_CACHE',
-                                  '/var/tmp/mycroft_web_cache.json')
+WEB_CONFIG_CACHE = join(XDG.xdg_config_home, 'mycroft', 'web_cache.json')
 
 
 def __ensure_folder_exists(path):
