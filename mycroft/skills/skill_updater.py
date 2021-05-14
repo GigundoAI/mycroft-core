@@ -22,7 +22,7 @@ from xdg import BaseDirectory as XDG
 from mycroft.api import DeviceApi, is_paired
 from mycroft.configuration import Configuration
 from mycroft.util import connected
-from mycroft.util.combo_lock import ComboLock
+from combo_lock import ComboLock
 from mycroft.util.log import LOG
 from mycroft.skills.msm_wrapper import build_msm_config, create_msm, MsmException
 
