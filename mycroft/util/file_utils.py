@@ -234,11 +234,14 @@ def get_cache_directory(domain=None):
     Returns:
         (str) a path to the directory where you can cache data
     """
-    config = mycroft.configuration.Configuration.get()
+    config = mycroft.configuration.Configuration.get(remote=False)
     directory = config.get("cache_path")
     if not directory:
-        # If not defined, use /tmp/mycroft/cache
-        directory = os.path.join(tempfile.gettempdir(), "mycroft", "cache")
+        if config.get("disable_xdg", True):
+            # If not defined, use /tmp/mycroft/cache
+            directory = os.path.join(tempfile.gettempdir(), "mycroft", "cache")
+        else:
+            directory = os.path.join(XDG.xdg_data_home, "mycroft", "cache")
     return ensure_directory_exists(directory, domain)
 
 

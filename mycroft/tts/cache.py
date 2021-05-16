@@ -106,6 +106,9 @@ class AudioFile:
 class PhonemeFile:
     def __init__(self, cache_dir: Path, sentence_hash: str):
         self.name = f"{sentence_hash}.pho"
+        ensure_directory_exists(
+            str(cache_dir), permissions=0o755
+        )
         self.path = cache_dir.joinpath(self.name)
 
     def load(self) -> List:
@@ -139,7 +142,7 @@ class TextToSpeechCache:
     def __init__(self, tts_config, tts_name, audio_file_type):
         self.config = tts_config
         self.tts_name = tts_name
-        if "preloaded_cache" in self.config:
+        if self.config.get("preloaded_cache"):
             self.persistent_cache_dir = Path(self.config["preloaded_cache"])
         else:
             self.persistent_cache_dir = None
