@@ -251,15 +251,6 @@ class MycroftSkill:
             bus: Mycroft messagebus connection
         """
         if bus:
-            if not self.config_core["websocket"].get("shared_connection",
-                                                     True):
-                # see BusBricker skill to understand why this matters
-                # any skill can manipulate the bus from other skills, that is
-                # unacceptable! this patch ensures each skill gets it's own
-                # connection that can't be manipulated by others
-                # https://github.com/EvilJarbas/BusBrickerSkill
-                bus = MessageBusClient(cache=True)
-                bus.run_in_thread()
             self._bus = bus
             self.events.set_bus(bus)
             self.intent_service.set_bus(bus)
