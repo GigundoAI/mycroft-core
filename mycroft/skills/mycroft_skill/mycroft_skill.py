@@ -254,6 +254,7 @@ class MycroftSkill:
             self._bus = bus
             self.events.set_bus(bus)
             self.intent_service.set_bus(bus)
+            self.intent_service.set_id(self.skill_id)
             self.event_scheduler.set_bus(bus)
             self.event_scheduler.set_id(self.skill_id)
             self._enclosure = EnclosureAPI(bus, self.name)
