@@ -347,6 +347,10 @@ class MycroftSkill:
                         self.handle_deactivate)
         self.events.add("intent.service.skills.deactivated",
                         self._handle_skill_deactivated)
+        self.events.add(f"{self.skill_id}.activate",
+                        self.handle_activate)
+        self.events.add("intent.service.skills.activated",
+                        self._handle_skill_activated)
 
     def handle_settings_change(self, message):
         """Update settings if the remote settings changes apply to this skill.
@@ -398,6 +402,17 @@ class MycroftSkill:
         return None
 
     # converse handling
+    def _handle_skill_activated(self, message):
+        """ intent service activated a skill
+        if it was this skill fire the skill activation event"""
+        if message.data.get("skill_id") == self.skill_id:
+            self.bus.emit(message.forward(f"{self.skill_id}.activate"))
+
+    def handle_activate(self, message):
+        """ skill is now considered active by the intent service
+        converse method will be called, skills might want to prepare/resume
+        """
+
     def _handle_skill_deactivated(self, message):
         """ intent service deactivated a skill
         if it was this skill fire the skill deactivation event"""
