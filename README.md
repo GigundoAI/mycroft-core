@@ -37,7 +37,10 @@ HolmesV tries to be a drop-in replacement for mycroft-core, most changes are jus
 | ntp sync                              | hardcoded list of platforms (forced) | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L269)                    |
 | XDG compliant                         | no, see PR [#](https://github.com/MycroftAI/mycroft-core/pull/2794)                         | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L95)                     |
 | individual bus connections            | no, see issue [#](https://github.com/MycroftAI/mycroft-core/issues/2905)                      | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L159)                      |
-| user can override fallback priorities | no, see PR [#](https://github.com/MycroftAI/mycroft-core/pull/987)                         | [yes](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L134)                                    |
+| per skill fallback priorities         | no, see PR [#](https://github.com/MycroftAI/mycroft-core/pull/987)                         | [yes](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L134)                                    |
+| per skill fallback permissions        | no                                   | [yes](https://github.com/HelloChatterbox/HolmesV/commit/b42bd449bb87d567a6d17c836a2d77be60783a9c)                                    |
+| per skill converse permissions        | no                                   | [yes](https://github.com/HelloChatterbox/HolmesV/commit/b42bd449bb87d567a6d17c836a2d77be60783a9c)                                    |
+
 
 ## Objectives
 

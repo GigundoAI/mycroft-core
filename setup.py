@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='HolmesV',
-    version="2021.5.6a12",
+    version="2021.5.6a13",
     license='Apache-2.0',
     url='https://github.com/HelloChatterbox/HolmesV',
     description='mycroft-core packaged as a library you can rely on',
