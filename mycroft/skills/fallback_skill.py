@@ -52,9 +52,11 @@ class FallbackSkill(MycroftSkill):
 
     def __init__(self, name=None, bus=None, use_settings=True):
         super().__init__(name, bus, use_settings)
-
         #  list of fallback handlers registered by this instance
         self.instance_fallback_handlers = []
+
+        # "skill_id": priority (int)  overrides
+        self.priority_overrides = self.config_core["skills"].get("fallback_priorities") or {}
 
     @classmethod
     def make_intent_failure_handler(cls, bus):
@@ -134,6 +136,8 @@ class FallbackSkill(MycroftSkill):
         """Register a fallback with the list of fallback handlers and with the
         list of handlers registered by this instance
         """
+        # check if .conf is overriding the priority for this skill
+        priority = self.priority_overrides.get(self.skill_id, priority)
 
         def wrapper(*args, **kwargs):
             if handler(*args, **kwargs):
