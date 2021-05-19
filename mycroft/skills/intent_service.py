@@ -156,7 +156,7 @@ class IntentService:
 
     # converse handling
     def handle_activate_skill_request(self, message):
-        self.add_active_skill(message.data['skill_id'])
+        self.add_active_skill(message)
 
     def handle_deactivate_skill_request(self, message):
         # TODO imperfect solution - only a skill can deactivate itself
@@ -166,7 +166,7 @@ class IntentService:
         skill_id = message.data['skill_id']
         source_skill = message.context.get("skill_id") or skill_id
         if skill_id == source_skill:
-            self.remove_active_skill(message.data['skill_id'])
+            self.remove_active_skill(message)
 
     def reset_converse(self, message):
         """Let skills know there was a problem with speech recognition"""
@@ -217,12 +217,19 @@ class IntentService:
         Arguments:
             skill_id (str): skill to remove
         """
+        if isinstance(skill_id, Message):
+            msg = skill_id
+            skill_id = msg.data.get('skill_id') or msg.context.get('skill_id')
+            msg = msg.reply("intent.service.skills.deactivated",
+                            {"skill_id": skill_id})
+        else:
+            msg = Message("intent.service.skills.deactivated",
+                          {"skill_id": skill_id},
+                          {"source": "IntentService"})
         for skill in self.active_skills:
             if skill[0] == skill_id:
                 self.active_skills.remove(skill)
-                self.bus.emit(
-                    Message("intent.service.skills.deactivated",
-                            {"skill_id": skill_id}))
+                self.bus.emit(msg)
 
     def add_active_skill(self, skill_id):
         """Add a skill or update the position of an active skill.
@@ -233,15 +240,22 @@ class IntentService:
         Arguments:
             skill_id (str): identifier of skill to be added.
         """
+        if isinstance(skill_id, Message):
+            msg = skill_id
+            skill_id = msg.data.get('skill_id') or msg.context.get('skill_id')
+            msg = msg.reply("intent.service.skills.activated",
+                            {"skill_id": skill_id})
+        else:
+            msg = Message("intent.service.skills.activated",
+                          {"skill_id": skill_id},
+                          {"source": "IntentService"})
         # search the list for an existing entry that already contains it
         # and remove that reference
         if skill_id != '':
             self.remove_active_skill(skill_id)
             # add skill with timestamp to start of skill_list
             self.active_skills.insert(0, [skill_id, time.time()])
-            self.bus.emit(
-                Message("intent.service.skills.activated",
-                        {"skill_id": skill_id}))
+            self.bus.emit(msg)
         else:
             LOG.warning('Skill ID was empty, won\'t add to list of '
                         'active skills.')
