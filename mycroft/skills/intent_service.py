@@ -26,6 +26,7 @@ from mycroft.skills.intent_services import (
     AdaptService, AdaptIntent, FallbackService, PadatiousService, IntentMatch
 )
 from mycroft.skills.intent_service_interface import open_intent_envelope
+from mycroft.skills.permissions import ConverseMode
 
 
 def _get_message_lang(message):
@@ -79,11 +80,12 @@ class IntentService:
     querying the intent service.
     """
     def __init__(self, bus):
-        # Dictionary for translating a skill id to a name
         self.bus = bus
-
-        self.skill_names = {}
         config = Configuration.get()
+
+        # Dictionary for translating a skill id to a name
+        self.skill_names = {}
+
         self.adapt_service = AdaptService(config.get('context', {}))
         try:
             self.padatious_service = PadatiousService(bus, config['padatious'])
@@ -103,6 +105,12 @@ class IntentService:
         self.bus.on('clear_context', self.handle_clear_context)
 
         # Converse method
+        self.converse_opmode = config["skills"].get(
+            "converse_mode", ConverseMode.ACCEPT_ALL)
+        self.converse_blacklist = config["skills"].get(
+            "converse_blacklist", [])
+        self.converse_whitelist = config["skills"].get(
+            "converse_whitelist", [])
         self.bus.on('mycroft.speech.recognition.unknown', self.reset_converse)
         self.bus.on('mycroft.skills.loaded', self.update_skill_name_dict)
 
@@ -169,6 +177,12 @@ class IntentService:
             lang (str): current language
             message (Message): message containing interaction info.
         """
+        if self.converse_opmode == ConverseMode.BLACKLIST:
+            if skill_id in self.converse_blacklist:
+                return False
+        if self.converse_opmode == ConverseMode.WHITELIST:
+            if skill_id not in self.converse_whitelist:
+                return False
         converse_msg = (message.reply("skill.converse.request", {
             "skill_id": skill_id, "utterances": utterances, "lang": lang}))
         result = self.bus.wait_for_response(converse_msg,
