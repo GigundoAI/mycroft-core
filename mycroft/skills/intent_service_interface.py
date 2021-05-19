@@ -55,9 +55,11 @@ class IntentServiceInterface:
                               {'start': entity, 'end': vocab_type},
                               context={"skill_id": self.skill_id}))
         for alias in aliases:
-            self.bus.emit(Message("register_vocab", {
-                'start': alias, 'end': vocab_type, 'alias_of': entity
-            }, context={"skill_id": self.skill_id}))
+            self.bus.emit(Message("register_vocab",
+                                  {'start': alias,
+                                   'end': vocab_type,
+                                   'alias_of': entity},
+                                  context={"skill_id": self.skill_id}))
 
     def register_adapt_regex(self, regex):
         """Register a regex with the intent service.
@@ -66,7 +68,8 @@ class IntentServiceInterface:
             regex (str): Regex to be registered, (Adapt extracts keyword
                          reference from named match group.
         """
-        self.bus.emit(Message("register_vocab", {'regex': regex},
+        self.bus.emit(Message("register_vocab",
+                              {'regex': regex},
                               context={"skill_id": self.skill_id}))
 
     def register_adapt_intent(self, name, intent_parser):
@@ -75,8 +78,8 @@ class IntentServiceInterface:
         Serializes the intent_parser and sends it over the messagebus to
         registered.
         """
-        self.bus.emit(Message("register_intent", intent_parser.__dict__),
-                      context={"skill_id": self.skill_id})
+        self.bus.emit(Message("register_intent", intent_parser.__dict__,
+                      context={"skill_id": self.skill_id}))
         self.registered_intents.append((name, intent_parser))
 
     def detach_intent(self, intent_name):
@@ -85,7 +88,8 @@ class IntentServiceInterface:
         Arguments:
             intent_name(str): Intent reference
         """
-        self.bus.emit(Message("detach_intent", {"intent_name": intent_name},
+        self.bus.emit(Message("detach_intent",
+                              {"intent_name": intent_name},
                               context={"skill_id": self.skill_id}))
 
     def set_adapt_context(self, context, word, origin):
@@ -107,7 +111,8 @@ class IntentServiceInterface:
         Arguments:
             context(str): name of context to remove
         """
-        self.bus.emit(Message('remove_context', {'context': context},
+        self.bus.emit(Message('remove_context',
+                              {'context': context},
                               context={"skill_id": self.skill_id}))
 
     def register_padatious_intent(self, intent_name, filename):
