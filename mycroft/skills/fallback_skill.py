@@ -55,14 +55,7 @@ class FallbackSkill(MycroftSkill):
         self.instance_fallback_handlers = []
 
         # "skill_id": priority (int)  overrides
-        self.priority_overrides = self.config_core["skills"].get(
-            "fallback_priorities") or {}
-        self.fallback_opmode = self.config_core["skills"].get(
-            "fallback_mode", FallbackMode.ACCEPT_ALL)
-        self.fallback_blacklist = self.config_core["skills"].get(
-            "fallback_blacklist", [])
-        self.fallback_whitelist = self.config_core["skills"].get(
-            "fallback_whitelist", [])
+        self.fallback_config = self.config_core["skills"].get("fallbacks", {})
 
     @classmethod
     def make_intent_failure_handler(cls, bus):
@@ -142,15 +135,21 @@ class FallbackSkill(MycroftSkill):
         """Register a fallback with the list of fallback handlers and with the
         list of handlers registered by this instance
         """
-        if self.fallback_opmode == FallbackMode.BLACKLIST:
-            if self.skill_id in self.fallback_blacklist:
-                return
-        if self.fallback_opmode == FallbackMode.WHITELIST:
-            if self.skill_id not in self.fallback_whitelist:
-                return
+        opmode = self.fallback_config.get("fallback_mode",
+                                          FallbackMode.ACCEPT_ALL)
+        priority_overrides = self.fallback_config.get("fallback_priorities", {})
+        fallback_blacklist = self.fallback_config.get("fallback_blacklist", [])
+        fallback_whitelist = self.fallback_config.get("fallback_whitelist", [])
+
+        if opmode == FallbackMode.BLACKLIST and \
+                self.skill_id in fallback_blacklist:
+            return
+        if opmode == FallbackMode.WHITELIST and \
+                self.skill_id not in fallback_whitelist:
+            return
 
         # check if .conf is overriding the priority for this skill
-        priority = self.priority_overrides.get(self.skill_id, priority)
+        priority = priority_overrides.get(self.skill_id, priority)
 
         def wrapper(*args, **kwargs):
             if handler(*args, **kwargs):

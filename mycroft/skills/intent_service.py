@@ -26,7 +26,7 @@ from mycroft.skills.intent_services import (
     AdaptService, AdaptIntent, FallbackService, PadatiousService, IntentMatch
 )
 from mycroft.skills.intent_service_interface import open_intent_envelope
-from mycroft.skills.permissions import ConverseMode
+from mycroft.skills.permissions import ConverseMode, ConverseActivationMode
 
 
 def _get_message_lang(message):
@@ -105,19 +105,13 @@ class IntentService:
         self.bus.on('clear_context', self.handle_clear_context)
 
         # Converse method
-        self.converse_opmode = config["skills"].get(
-            "converse_mode", ConverseMode.ACCEPT_ALL)
-        self.converse_blacklist = config["skills"].get(
-            "converse_blacklist", [])
-        self.converse_whitelist = config["skills"].get(
-            "converse_whitelist", [])
+        self.converse_config = config["skills"].get("converse") or {}
         self.bus.on('mycroft.speech.recognition.unknown', self.reset_converse)
         self.bus.on('mycroft.skills.loaded', self.update_skill_name_dict)
 
-        def add_active_skill_handler(message):
-            self.add_active_skill(message.data['skill_id'])
+        # TODO sync with https://github.com/HelloChatterbox/HolmesV/pull/42
+        self.bus.on('active_skill_request', self.handle_activate_skill_request)
 
-        self.bus.on('active_skill_request', add_active_skill_handler)
         self.active_skills = []  # [skill_id , timestamp]
         self.converse_timeout = 5  # minutes to prune active_skills
 
@@ -159,6 +153,47 @@ class IntentService:
         """
         return self.skill_names.get(skill_id, skill_id)
 
+    # converse handling
+    def handle_activate_skill_request(self, message):
+
+        skill_id = message.data['skill_id']
+
+        # cross activation control if skills can activate each other
+        if not self.converse_config.get("cross_activation"):
+            # TODO imperfect solution - only a skill can activate itself
+            # someone can forge this message and emit it raw, but in HolmesV all
+            # skill messages should have skill_id in context, so let's make sure
+            # this doesnt happen accidentally at very least
+            source_skill = message.context.get("skill_id") or skill_id
+            if skill_id != source_skill:
+                # different skill is trying to activate this skill
+                return
+
+        # mode of activation dictates under what conditions a skill is
+        # allowed to activate itself
+        acmode = self.converse_config.get("converse_activation") or \
+                 ConverseActivationMode.ACCEPT_ALL
+
+        if acmode == ConverseActivationMode.PRIORITY:
+            prio = self.converse_config.get("converse_priorities") or {}
+            # only allowed to activate if no skill with higher priority is
+            # active, currently there is no api for skills to
+            # define their default priority, this is a user/developer setting
+            priority = prio.get(skill_id, 50)
+            if any(p > priority for p in
+                   [prio.get(s[0], 50) for s in self.active_skills]):
+                return
+
+        if acmode == ConverseActivationMode.BLACKLIST:
+            if skill_id in self.converse_config.get("converse_blacklist", []):
+                return
+
+        if acmode == ConverseActivationMode.WHITELIST:
+            if skill_id not in self.converse_config.get("converse_whitelist", []):
+                return
+
+        self.add_active_skill(skill_id)
+
     def reset_converse(self, message):
         """Let skills know there was a problem with speech recognition"""
         lang = _get_message_lang(message)
@@ -177,12 +212,17 @@ class IntentService:
             lang (str): current language
             message (Message): message containing interaction info.
         """
-        if self.converse_opmode == ConverseMode.BLACKLIST:
-            if skill_id in self.converse_blacklist:
-                return False
-        if self.converse_opmode == ConverseMode.WHITELIST:
-            if skill_id not in self.converse_whitelist:
-                return False
+        opmode = self.converse_config.get("converse_mode",
+                                          ConverseMode.ACCEPT_ALL)
+
+        if opmode == ConverseMode.BLACKLIST and skill_id in \
+                self.converse_config.get("converse_blacklist", []):
+            return False
+
+        elif opmode == ConverseMode.WHITELIST and skill_id not in \
+                self.converse_config.get("converse_whitelist", []):
+            return False
+
         converse_msg = (message.reply("skill.converse.request", {
             "skill_id": skill_id, "utterances": utterances, "lang": lang}))
         result = self.bus.wait_for_response(converse_msg,
