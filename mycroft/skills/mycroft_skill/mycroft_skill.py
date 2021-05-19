@@ -470,9 +470,13 @@ class MycroftSkill:
             fail_data = data.copy()
             fail_data['utterance'] = utterance
             if on_fail:
-                return self.dialog_renderer.render(on_fail, fail_data)
+                if self.dialog_renderer:
+                    return self.dialog_renderer.render(on_fail, fail_data)
+                return on_fail
             else:
-                return self.dialog_renderer.render(dialog, data)
+                if self.dialog_renderer:
+                    return self.dialog_renderer.render(dialog, data)
+                return dialog
 
         def is_cancel(utterance):
             return self.voc_match(utterance, 'cancel')
@@ -488,8 +492,10 @@ class MycroftSkill:
         if dialog:
             self.speak_dialog(dialog, data, expect_response=True, wait=True)
         else:
-            self.bus.emit(Message('mycroft.mic.listen',
-                                  context={"skill_id": self.skill_id}))
+            msg = dig_for_message()
+            msg = msg.reply('mycroft.mic.listen') or \
+                  Message('mycroft.mic.listen', context={"skill_id": self.skill_id})
+            self.bus.emit(msg)
         return self._wait_response(is_cancel, validator, on_fail_fn,
                                    num_retries)
 
@@ -503,6 +509,11 @@ class MycroftSkill:
             on_fail (callable): function handling retries
 
         """
+        msg = dig_for_message()
+        msg = msg.reply('mycroft.mic.listen') or \
+              Message('mycroft.mic.listen',
+                      context={"skill_id": self.skill_id})
+
         num_fails = 0
         while True:
             response = self.__get_response()
@@ -528,8 +539,7 @@ class MycroftSkill:
             if line:
                 self.speak(line, expect_response=True)
             else:
-                self.bus.emit(Message('mycroft.mic.listen',
-                                      context={"skill_id": self.skill_id}))
+                self.bus.emit(msg)
 
     def ask_yesno(self, prompt, data=None):
         """Read prompt and wait for a yes/no answer
