@@ -113,7 +113,7 @@ class IntentService:
         self.bus.on('active_skill_request', self.handle_activate_skill_request)
 
         self.active_skills = []  # [skill_id , timestamp]
-        self.converse_timeout = 5  # minutes to prune active_skills
+        self._consecutive_activations = {}
 
         # Intents API
         self.registered_vocab = []
@@ -192,7 +192,24 @@ class IntentService:
             if skill_id not in self.converse_config.get("converse_whitelist", []):
                 return
 
+        # limit of consecutive activations
+        default_max = self.converse_config.get("max_activations", -1)
+        # per skill override limit of consecutive activations
+        skill_max = self.converse_config.get("skill_activations", {}).get(skill_id)
+        max_activations = skill_max or default_max
+        if skill_id not in self._consecutive_activations:
+            self._consecutive_activations[skill_id] = 0
+        if max_activations < 0:
+            pass  # no limit (mycroft-core default)
+        elif max_activations == 0:
+            return  # skill activation disabled
+        elif self._consecutive_activations.get(skill_id, 0) > max_activations:
+            return  # skill exceeded authorized consecutive number of
+                    # activations
+
+        # activate skill
         self.add_active_skill(skill_id)
+        self._consecutive_activations[skill_id] += 1
 
     def reset_converse(self, message):
         """Let skills know there was a problem with speech recognition"""
@@ -257,6 +274,8 @@ class IntentService:
         for skill in self.active_skills:
             if skill[0] == skill_id:
                 self.active_skills.remove(skill)
+                if skill_id in self._consecutive_activations:
+                    self._consecutive_activations[skill_id] = 0
 
     def add_active_skill(self, skill_id):
         """Add a skill or update the position of an active skill.
@@ -385,10 +404,14 @@ class IntentService:
             IntentMatch if handled otherwise None.
         """
         utterances = [item for tup in utterances for item in tup]
+
         # check for conversation time-out
-        self.active_skills = [skill for skill in self.active_skills
-                              if time.time() - skill[
-                                  1] <= self.converse_timeout * 60]
+        skill_timeouts = self.converse_config.get("skill_timeouts") or {}
+        default_timeout = self.converse_config.get("timeout", 300)
+        self.active_skills = [
+            skill for skill in self.active_skills
+            if time.time() - skill[1] <= skill_timeouts.get(skill[0],
+                                                            default_timeout)]
 
         # check if any skill wants to handle utterance
         for skill in copy(self.active_skills):
