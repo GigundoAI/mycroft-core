@@ -27,14 +27,17 @@ It is aimed at developers and makers interested in building on top of the mycrof
 
 HolmesV tries to be a drop-in replacement for mycroft-core, most changes are just cleanup and moving imports around, however there are some notable new features:
 
-- [XDG compliant](https://github.com/HelloChatterbox/HolmesV/pull/32)
-- [internet_connection](https://github.com/HelloChatterbox/HolmesV/pull/28) is optional / can be disabled in .conf
-- [backend](https://github.com/HelloChatterbox/HolmesV/pull/9) is optional / can be disabled in .conf
-- [msm](https://github.com/HelloChatterbox/HolmesV/pull/24) is optional / can be disabled in .conf
-- [padatious](https://github.com/HelloChatterbox/HolmesV/pull/23) is optional / can be disabled in .conf
-- lingua_franca [0.4.x](https://github.com/MycroftAI/mycroft-core/pull/2772)
-- lingua_franca can be replaced with [lingua_nostra](https://github.com/HelloChatterbox/lingua-nostra)
-
+| Feature                               | Mycroft                              | HolmesV                                |
+|---------------------------------------|--------------------------------------|----------------------------------------|
+| lingua_franca                         | required                             | optionally replaced with [lingua_nostra](https://github.com/HelloChatterbox/lingua-nostra) |
+| backend                               | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L148)                               |
+| internet connection                   | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L103)                               |
+| msm                                   | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/skills/msm_wrapper.py#L100)                               |
+| padatious                             | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L353)                               |
+| ntp sync                              | hardcoded list of platforms (forced) | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L269)                    |
+| XDG compliant                         | no, see PR [#](https://github.com/MycroftAI/mycroft-core/pull/2794)                         | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L95)                     |
+| individual bus connections            | no, see issue [#](https://github.com/MycroftAI/mycroft-core/issues/2905)                      | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L159)                      |
+| user can override fallback priorities | no, see PR [#](https://github.com/MycroftAI/mycroft-core/pull/987)                         | [yes](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L134)                                    |
 
 ## Objectives
 
