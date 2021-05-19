@@ -767,6 +767,8 @@ class MycroftSkill:
         Returns:
             str: A randomly chosen string from the file
         """
+        if self.dialog_renderer is None:
+            return ""
         return self.dialog_renderer.render(text, data or {})
 
     def find_resource(self, res_name, res_dirname=None):
