@@ -43,7 +43,7 @@ class FileSystemAccess:
             path = old_path
         else:
             # Migrate from the old location if it still exists
-            if isdir(old_path):
+            if isdir(old_path) and not isdir(path):
                 shutil.move(old_path, path)
 
         if not isdir(path):
