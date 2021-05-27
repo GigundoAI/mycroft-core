@@ -25,6 +25,7 @@ import tempfile
 from xdg import BaseDirectory as XDG
 
 import mycroft.configuration
+from mycroft.configuration import get_xdg_base
 from mycroft.util.log import LOG
 
 
@@ -59,7 +60,7 @@ def resolve_resource_file(res_name):
         return res_name
 
     # Now look for XDG_DATA_DIRS
-    for path in XDG.load_data_paths('mycroft'):
+    for path in XDG.load_data_paths(get_xdg_base()):
         filename = os.path.join(path, res_name)
         if os.path.isfile(filename):
             return filename
@@ -241,7 +242,7 @@ def get_cache_directory(domain=None):
             # If not defined, use /tmp/mycroft/cache
             directory = os.path.join(tempfile.gettempdir(), "mycroft", "cache")
         else:
-            directory = os.path.join(XDG.xdg_data_home, "mycroft", "cache")
+            directory = os.path.join(XDG.xdg_data_home, get_xdg_base(), "cache")
     return ensure_directory_exists(directory, domain)
 
 

@@ -26,6 +26,7 @@ from xdg import BaseDirectory as XDG
 
 from combo_lock import ComboLock
 from mycroft.util.log import LOG
+from mycroft.configuration import get_xdg_base
 from mock_msm import \
     MycroftSkillsManager as MockMSM, \
     SkillRepo as MockSkillRepo
@@ -114,7 +115,7 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     LOG.info('Acquiring lock to instantiate MSM')
     with msm_lock:
         # create folder if needed
-        XDG.save_data_path('mycroft/skills')
+        XDG.save_data_path(get_xdg_base() + '/skills')
 
         msm_skill_repo = repo_clazz(
             msm_config.repo_url,

@@ -16,7 +16,6 @@ import sys
 import io
 from math import ceil
 from xdg import BaseDirectory as XDG
-
 from mycroft.client.text.gui_server import start_qml_gui
 
 from mycroft.tts import TTS
@@ -32,7 +31,7 @@ from threading import Thread, Lock
 from mycroft.messagebus.client import MessageBusClient
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
-from mycroft.configuration import Configuration
+from mycroft.configuration import Configuration, get_xdg_base
 
 import locale
 # Curses uses LC_ALL to determine how to display chars set it to system
@@ -189,12 +188,12 @@ def load_settings():
         LOG.warning(" Note that this location is deprecated and will" +
                     " not be used in the future")
         LOG.warning(" Please move it to " +
-                    os.path.join(XDG.xdg_config_home, 'mycroft', filename))
+                    os.path.join(XDG.xdg_config_home, get_xdg_base(), filename))
         config_file = path
 
     # Check XDG_CONFIG_DIR
     if config_file is None:
-        for p in XDG.load_config_paths('mycroft'):
+        for p in XDG.load_config_paths(get_xdg_base()):
             file = os.path.join(p, filename)
             if os.path.isfile(file):
                 config_file = file
@@ -238,7 +237,7 @@ def save_settings():
     if core_conf.get("disable_xdg"):
         config_file = path
     else:
-        config_file = os.path.join(XDG.xdg_config_home, 'mycroft', filename)
+        config_file = os.path.join(XDG.xdg_config_home, get_xdg_base(), filename)
 
     with io.open(config_file, 'w') as f:
         f.write(str(json.dumps(config, ensure_ascii=False)))

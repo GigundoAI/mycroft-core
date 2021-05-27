@@ -12,5 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from mycroft.configuration.locations import SYSTEM_CONFIG, USER_CONFIG, \
+    set_xdg_base, get_xdg_base, set_config_filename
 from mycroft.configuration.config import Configuration, LocalConf, RemoteConf
-from mycroft.configuration.locations import SYSTEM_CONFIG, USER_CONFIG
+

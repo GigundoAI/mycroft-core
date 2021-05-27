@@ -24,6 +24,7 @@ from xdg import BaseDirectory as XDG
 from mycroft.util.json_helper import load_commented_json, merge_dict
 from mycroft.util.log import LOG
 
+from mycroft.configuration import get_xdg_base
 from mycroft.configuration.locations import (DEFAULT_CONFIG, SYSTEM_CONFIG,
                                              OLD_USER_CONFIG, WEB_CONFIG_CACHE,
                                              USER_CONFIG)
@@ -247,7 +248,7 @@ class Configuration:
                 # Then use XDG config
                 # This includes both the user config and
                 # /etc/xdg/mycroft/mycroft.conf
-                for p in XDG.load_config_paths('mycroft'):
+                for p in XDG.load_config_paths(get_xdg_base()):
                     configs.append(LocalConf(join(p, 'mycroft.conf')))
 
                 # Then check the old user config
@@ -260,7 +261,7 @@ class Configuration:
                     LOG.warning(" Note that this location is deprecated and will" +
                                 " not be used in the future")
                     LOG.warning(" Please move it to " +
-                                join(XDG.xdg_config_home, 'mycroft'))
+                                join(XDG.xdg_config_home, get_xdg_base()))
                     configs.append(LocalConf(OLD_USER_CONFIG))
 
                 # Then check the XDG user config

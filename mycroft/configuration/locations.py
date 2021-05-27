@@ -16,16 +16,50 @@ from time import sleep
 from os.path import join, dirname, expanduser, exists
 from xdg import BaseDirectory as XDG
 
-DEFAULT_CONFIG = join(dirname(__file__), 'mycroft.conf')
+
+# for downstream support, all XDG paths should respect this
+XDG_BASE_FOLDER = "mycroft"
+CONFIG_FILE_NAME = "mycroft.conf"
+
+
+def set_xdg_base(folder_name):
+    global XDG_BASE_FOLDER
+    from mycroft.util.log import LOG
+    LOG.info(f"XDG base folder set to: '{folder_name}'")
+    XDG_BASE_FOLDER = folder_name
+
+
+def set_config_filename(file_name):
+    global CONFIG_FILE_NAME, DEFAULT_CONFIG, SYSTEM_CONFIG, \
+        OLD_USER_CONFIG, USER_CONFIG
+    from mycroft.util.log import LOG
+    LOG.info(f"config filename set to: '{file_name}'")
+    CONFIG_FILE_NAME = file_name
+    DEFAULT_CONFIG = join(dirname(__file__), CONFIG_FILE_NAME)
+    SYSTEM_CONFIG = os.environ.get('MYCROFT_SYSTEM_CONFIG',
+                                   '/etc/mycroft/' + CONFIG_FILE_NAME)
+    # Make sure we support the old location still
+    # Deprecated and will be removed eventually
+    OLD_USER_CONFIG = join(expanduser('~'), '.mycroft', CONFIG_FILE_NAME)
+    USER_CONFIG = join(XDG.xdg_config_home, XDG_BASE_FOLDER, CONFIG_FILE_NAME)
+    __ensure_folder_exists(USER_CONFIG)
+
+
+def get_xdg_base():
+    global XDG_BASE_FOLDER
+    return XDG_BASE_FOLDER
+
+
+DEFAULT_CONFIG = join(dirname(__file__), CONFIG_FILE_NAME)
 SYSTEM_CONFIG = os.environ.get('MYCROFT_SYSTEM_CONFIG',
-                               '/etc/mycroft/mycroft.conf')
+                               '/etc/mycroft/' + CONFIG_FILE_NAME)
 # Make sure we support the old location still
 # Deprecated and will be removed eventually
-OLD_USER_CONFIG = join(expanduser('~'), '.mycroft/mycroft.conf')
-USER_CONFIG = join(XDG.xdg_config_home, 'mycroft', 'mycroft.conf')
+OLD_USER_CONFIG = join(expanduser('~'), '.mycroft', CONFIG_FILE_NAME)
+USER_CONFIG = join(XDG.xdg_config_home, XDG_BASE_FOLDER, CONFIG_FILE_NAME)
 
 REMOTE_CONFIG = "mycroft.ai"
-WEB_CONFIG_CACHE = join(XDG.xdg_config_home, 'mycroft', 'web_cache.json')
+WEB_CONFIG_CACHE = join(XDG.xdg_config_home, XDG_BASE_FOLDER, 'web_cache.json')
 
 
 def __ensure_folder_exists(path):

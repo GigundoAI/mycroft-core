@@ -33,7 +33,7 @@ from mycroft.api import DeviceApi
 from mycroft.audio import wait_while_speaking
 from mycroft.enclosure.api import EnclosureAPI
 from mycroft.enclosure.gui import SkillGUI
-from mycroft.configuration import Configuration
+from mycroft.configuration import Configuration, get_xdg_base
 from mycroft.dialog import load_dialogs
 from mycroft.filesystem import FileSystemAccess
 from mycroft.messagebus.message import Message, dig_for_message
@@ -185,7 +185,7 @@ class MycroftSkill:
 
         # Then, check XDG_CONFIG_DIR
         if not settings_read_path.joinpath('settings.json').exists():
-            for path in XDG.load_config_paths('mycroft', 'skills',
+            for path in XDG.load_config_paths(get_xdg_base(), 'skills',
                                               basename(self.root_dir)):
                 path = Path(path)
                 # If there is a settings file here, use it
