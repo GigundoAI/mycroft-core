@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 from mycroft.configuration.locations import SYSTEM_CONFIG, USER_CONFIG, \
-    set_xdg_base, get_xdg_base, set_config_filename
+    set_xdg_base, get_xdg_base, set_config_filename, get_config_locations, \
+    get_config_filename, get_xdg_config_locations, set_default_config
 from mycroft.configuration.config import Configuration, LocalConf, RemoteConf
 
