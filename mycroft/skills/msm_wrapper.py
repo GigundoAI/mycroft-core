@@ -53,6 +53,21 @@ MsmConfig = namedtuple(
 )
 
 
+def get_skills_directory():
+    conf = Configuration.get(remote=False)
+    path_override = conf["skills"].get("directory_override")
+    # if .conf wants to use a specific path, use it!
+    if path_override:
+        skills_folder = path_override
+    # if xdg is enabled, respect it!
+    elif conf.get("disable_xdg"):
+        skills_folder = None
+    else:
+        # create folder if needed
+        skills_folder = XDG.save_data_path(get_xdg_base() + '/skills')
+    return skills_folder
+
+
 def _init_msm_lock():
     msm_lock = None
     try:
@@ -115,17 +130,7 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     LOG.info('Acquiring lock to instantiate MSM')
     with msm_lock:
 
-        conf = Configuration.get(remote=False)
-        path_override = conf["skills"].get("directory_override")
-        # if .conf wants to use a specific path, use it!
-        if path_override:
-            skills_folder = path_override
-        # if xdg is enabled, respect it!
-        elif conf.get("disable_xdg"):
-            skills_folder = None
-        else:
-            # create folder if needed
-            skills_folder = XDG.save_data_path(get_xdg_base() + '/skills')
+        skills_folder = get_skills_directory()
 
         msm_skill_repo = repo_clazz(
             msm_config.repo_url,

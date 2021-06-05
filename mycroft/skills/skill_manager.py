@@ -18,7 +18,6 @@ from glob import glob
 from threading import Thread, Event, Lock
 from time import sleep, time, monotonic
 from inspect import signature
-import xdg
 
 from mycroft.api import is_paired
 from mycroft.enclosure.api import EnclosureAPI
@@ -27,7 +26,8 @@ from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
 from mycroft.util import connected
 from mycroft.util.lang import set_default_lang, load_languages
-from mycroft.skills.msm_wrapper import create_msm as msm_creator, build_msm_config
+from mycroft.skills.msm_wrapper import create_msm as msm_creator, \
+    build_msm_config, get_skills_directory
 from mycroft.skills.settings import SkillSettingsDownloader
 from mycroft.skills.skill_loader import SkillLoader
 from mycroft.skills.skill_updater import SkillUpdater
@@ -268,7 +268,7 @@ class SkillManager(Thread):
     def _remove_git_locks(self):
         """If git gets killed from an abrupt shutdown it leaves lock files."""
         for i in glob(os.path.join(
-            xdg.BaseDirectory.save_data_path('mycroft/skills'),
+            get_skills_directory(),
                 '*/.git/index.lock')):
             LOG.warning('Found and removed git lock file: ' + i)
             os.remove(i)
@@ -325,8 +325,7 @@ class SkillManager(Thread):
         return skill_loader if load_status else None
 
     def _get_skill_directories(self):
-        skill_glob = glob(os.path.join(
-            xdg.BaseDirectory.save_data_path('mycroft/skills'), '*/'))
+        skill_glob = glob(os.path.join(get_skills_directory(), '*/'))
         skill_directories = []
         for skill_dir in skill_glob:
             # TODO: all python packages must have __init__.py!  Better way?
