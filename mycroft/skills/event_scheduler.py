@@ -23,7 +23,7 @@ from threading import Thread, Lock
 from os.path import isfile, join, expanduser
 from xdg import BaseDirectory as XDG
 
-from mycroft.configuration import Configuration
+from mycroft.configuration import Configuration, get_xdg_base
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
 from mycroft.skills.mycroft_skill.event_container import EventContainer, \
@@ -72,7 +72,7 @@ class EventScheduler(Thread):
             self.schedule_file = old_schedule_path
         else:
             new_schedule_path = join(
-                    XDG.load_first_config('mycroft'), schedule_file)
+                    XDG.load_first_config(get_xdg_base()), schedule_file)
             if isfile(old_schedule_path):
                 shutil.move(old_schedule_path, new_schedule_path)
             self.schedule_file = new_schedule_path

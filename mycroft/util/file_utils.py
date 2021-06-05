@@ -60,7 +60,7 @@ def resolve_resource_file(res_name):
         return res_name
 
     # Now look for XDG_DATA_DIRS
-    for path in XDG.load_data_paths('mycroft'):
+    for path in XDG.load_data_paths(mycroft.configuration.get_xdg_base()):
         filename = os.path.join(path, res_name)
         if os.path.isfile(filename):
             return filename
@@ -240,9 +240,11 @@ def get_cache_directory(domain=None):
     if not directory:
         if config.get("disable_xdg", True):
             # If not defined, use /tmp/mycroft/cache
-            directory = get_temp_path(get_xdg_base(), 'cache')
+            directory = get_temp_path(
+                mycroft.configuration.get_xdg_base(), 'cache')
         else:
-            directory = os.path.join(XDG.xdg_data_home, "mycroft", "cache")
+            directory = os.path.join(XDG.xdg_data_home,
+                                     mycroft.configuration.get_xdg_base(), "cache")
     return ensure_directory_exists(directory, domain)
 
 

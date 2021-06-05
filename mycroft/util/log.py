@@ -30,10 +30,10 @@ LOG.level parameter.
 import inspect
 import logging
 import sys
+from os.path import isfile
 
-from os.path import isfile, join
-from xdg import BaseDirectory as XDG
-from mycroft.configuration.locations import SYSTEM_CONFIG
+from mycroft.configuration.locations import get_xdg_config_locations, \
+    get_config_locations
 from mycroft.util.json_helper import load_commented_json, merge_dict
 
 
@@ -84,9 +84,12 @@ class LOG:
         # Check configs manually, the Mycroft configuration system can't be
         # used since it uses the LOG system and would cause horrible cyclic
         # dependencies.
-        confs = [SYSTEM_CONFIG]
-        for path in XDG.load_config_paths('mycroft'):
-            confs.append(join(path, 'mycroft.conf'))
+        default_config, system_config = get_config_locations(default=True,
+                                                             system=True,
+                                                             web_cache=False,
+                                                             old_user=False,
+                                                             user=False)
+        confs = [default_config, system_config] + get_xdg_config_locations()
 
         config = {}
         for conf in confs:
