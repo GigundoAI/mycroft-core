@@ -27,7 +27,7 @@ setup(
                       "inflection",
                       "psutil",
                       "combo_lock",
-                      "mock_msm",
+                      "mock_msm>=0.9.2",
                       "python-dateutil==2.6.0",
                       "requests-futures"],
     extras_require={
