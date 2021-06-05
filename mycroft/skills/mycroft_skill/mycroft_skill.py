@@ -33,7 +33,7 @@ from mycroft.api import DeviceApi
 from mycroft.audio import wait_while_speaking
 from mycroft.enclosure.api import EnclosureAPI
 from mycroft.enclosure.gui import SkillGUI
-from mycroft.configuration import Configuration
+from mycroft.configuration import Configuration, get_xdg_base
 from mycroft.dialog import load_dialogs
 from mycroft.filesystem import FileSystemAccess
 from mycroft.messagebus.message import Message, dig_for_message
@@ -170,30 +170,18 @@ class MycroftSkill:
     def _init_settings(self):
         """Setup skill settings."""
 
-        # To not break existing setups,
-        # save to skill directory if the file exists already
-        self.settings_write_path = Path(self.root_dir)
-
-        # Otherwise save to XDG_CONFIG_DIR
-        if not self.settings_write_path.joinpath('settings.json').exists():
+        # TODO remove this ugly ugly kludge
+        old_settings = join(self.root_dir, "settings.json")
+        if exists(old_settings):
+            # To not break existing setups,
+            # save to skill directory if the file exists already
+            self.settings_write_path = Path(self.root_dir)
+        else:
+            # Otherwise save to XDG_CONFIG_DIR
             self.settings_write_path = Path(XDG.save_config_path(
-                'mycroft', 'skills', basename(self.root_dir)))
+                get_xdg_base(), 'skills', basename(self.root_dir)))
 
-        # To not break existing setups,
-        # read from skill directory if the settings file exists there
-        settings_read_path = Path(self.root_dir)
-
-        # Then, check XDG_CONFIG_DIR
-        if not settings_read_path.joinpath('settings.json').exists():
-            for path in XDG.load_config_paths('mycroft', 'skills',
-                                              basename(self.root_dir)):
-                path = Path(path)
-                # If there is a settings file here, use it
-                if path.joinpath('settings.json').exists():
-                    settings_read_path = path
-                    break
-
-        self.settings = get_local_settings(settings_read_path, self.name)
+        self.settings = get_local_settings(self.settings_write_path, self.name)
         self._initial_settings = deepcopy(self.settings)
 
     @property

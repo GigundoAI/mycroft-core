@@ -20,7 +20,7 @@ from time import time
 from xdg import BaseDirectory as XDG
 
 from mycroft.api import DeviceApi, is_paired
-from mycroft.configuration import Configuration
+from mycroft.configuration import Configuration, get_xdg_base
 from mycroft.util import connected
 from mycroft.util.combo_lock import ComboLock
 from mycroft.util.log import LOG
@@ -102,7 +102,7 @@ class SkillUpdater:
                         '~/.mycroft/.mycroft-skills')
                 else:
                     self._installed_skills_file_path = os.path.join(
-                        XDG.xdg_data_home, 'mycroft', '.mycroft-skills')
+                        XDG.xdg_data_home, get_xdg_base(), '.mycroft-skills')
 
         return self._installed_skills_file_path
 

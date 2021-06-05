@@ -31,8 +31,7 @@ import speech_recognition as sr
 
 import requests
 
-from mycroft.configuration import Configuration, LocalConf
-from mycroft.configuration.locations import OLD_USER_CONFIG
+from mycroft.configuration import Configuration, get_xdg_base
 from mycroft.util.log import LOG
 from mycroft.util.monotonic_event import MonotonicEvent
 from mycroft.util.plugins import load_plugin
@@ -204,39 +203,6 @@ class PreciseHotword(HotWordEngine):
             PreciseRunner, PreciseEngine, ReadWriteStream
         )
 
-        conf = Configuration.get(remote=False)
-        if conf.get("disable_xdg"):
-            local_conf = {}
-        else:
-            # We need to save to a writeable location, but the key we need
-            # might be stored in a different, unwriteable, location
-            # Make sure we pick the key we need from wherever it's located,
-            # but save to a writeable location only
-
-            local_conf = LocalConf(join(XDG.xdg_config_home, 'mycroft',
-                                        'mycroft.conf'))
-
-            for path in XDG.load_config_paths('mycroft'):
-                conf = LocalConf(join(path, 'mycroft.conf'))
-                # If the current config contains the precise key use it,
-                # otherwise continue to the next file
-                if conf.get('precise', None) is not None:
-                    local_conf['precise'] = conf.get('precise', None)
-                    break
-
-        # If the key is not found yet, it might still exist on the old
-        # (deprecated) location
-        if local_conf.get('precise', None) is None:
-            local_conf = LocalConf(OLD_USER_CONFIG)
-
-        if not local_conf.get('precise', {}).get('use_precise', True):
-            raise PreciseUnavailable
-        if (local_conf.get('precise', {}).get('dist_url') ==
-                'http://bootstrap.mycroft.ai/artifacts/static/daily/'):
-            del local_conf['precise']['dist_url']
-            local_conf.store()
-            Configuration.updated(None)
-
         self.download_complete = True
 
         self.show_download_progress = Timer(0, lambda: None)
@@ -291,7 +257,7 @@ class PreciseHotword(HotWordEngine):
         old_path = join(expanduser('~'), '.mycroft', 'precise')
         if os.path.isdir(old_path):
             return old_path
-        return join(XDG.xdg_data_home, 'mycroft', "precise")
+        return join(XDG.xdg_data_home, get_xdg_base(), "precise")
 
     @property
     def install_destination(self):

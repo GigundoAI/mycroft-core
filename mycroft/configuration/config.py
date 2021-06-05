@@ -1,4 +1,3 @@
-
 # Copyright 2017 Mycroft AI Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,19 +13,16 @@
 # limitations under the License.
 #
 
-import re
 import json
-import inflection
-from os.path import exists, isfile, join
-from requests import RequestException
-from xdg import BaseDirectory as XDG
+import re
+from os.path import isfile
 
+import inflection
+from requests import RequestException
+
+from mycroft.configuration.locations import *
 from mycroft.util.json_helper import load_commented_json, merge_dict
 from mycroft.util.log import LOG
-
-from mycroft.configuration.locations import (DEFAULT_CONFIG, SYSTEM_CONFIG,
-                                             OLD_USER_CONFIG, WEB_CONFIG_CACHE,
-                                             USER_CONFIG)
 
 
 def is_remote_list(values):
@@ -130,8 +126,7 @@ class RemoteConf(LocalConf):
 
     def __init__(self, cache=None):
         super(RemoteConf, self).__init__(None)
-
-        cache = cache or WEB_CONFIG_CACHE
+        cache = cache or get_webcache_location()
 
         try:
             # Here to avoid cyclic import
@@ -188,6 +183,34 @@ class RemoteConf(LocalConf):
             self.load_local(cache)
 
 
+def _warn_xdg_config(old_user_config):
+    LOG.warning(" ===============================================")
+    LOG.warning(" ==             DEPRECATION WARNING           ==")
+    LOG.warning(" ===============================================")
+    LOG.warning(f" You still have a config file at {old_user_config}")
+    LOG.warning(" Note that this location is deprecated and will" +
+                " not be used in the future")
+    LOG.warning(" Please move it to " + join(XDG.xdg_config_home,
+                                             get_xdg_base()))
+
+
+def is_using_xdg_config():
+    default_config, system_config, old_user_config = \
+        get_config_locations(default=True,
+                             web_cache=False,
+                             system=True,
+                             old_user=True,
+                             user=False)
+    # HolmesV feature: optional XDG
+    # load all non XDG configs, and check if XDG is disabled
+    # TODO deprecate this once mycroft-core moves to XDG
+    # (or just change default .conf value)
+    _config = Configuration.load_config_stack(
+        [default_config, system_config, old_user_config],
+        cache=False, remote=False)
+    return not _config.get("disable_xdg")
+
+
 class Configuration:
     """Namespace for operations on the configuration singleton."""
     __config = {}  # Cached config
@@ -227,59 +250,34 @@ class Configuration:
         Returns:
             (dict) merged dict of all configuration files
         """
-
         if not configs:
-            configs = configs or []
+            default_config, system_config, old_user_config = \
+                get_config_locations(default=True,
+                                     system=True,
+                                     web_cache=False,
+                                     old_user=True,
+                                     user=False)
 
-            # first let's load all non XDG configs, and check if XDG is disabled
-            # TODO deprecate this once mycroft-core supports XDG
-            _config = Configuration.load_config_stack(
-                [DEFAULT_CONFIG, SYSTEM_CONFIG, OLD_USER_CONFIG],
-                cache=False, remote=False)
+            configs = [LocalConf(default_config), LocalConf(system_config),
+                       RemoteConf()] if remote \
+                else [LocalConf(default_config), LocalConf(system_config)]
 
-            # First use the patched config
-            configs.append(Configuration.__patch)
+            if is_using_xdg_config():
+                # deprecation warning
+                if isfile(old_user_config):
+                    _warn_xdg_config(old_user_config)
+                    configs.append(LocalConf(old_user_config))
 
-            if _config.get("disable_xdg"):
-                # Then check the old user config
-                configs.append(LocalConf(OLD_USER_CONFIG))
-            else:
-                # Then use XDG config
                 # This includes both the user config and
                 # /etc/xdg/mycroft/mycroft.conf
-                for p in XDG.load_config_paths('mycroft'):
-                    configs.append(LocalConf(join(p, 'mycroft.conf')))
+                configs += [LocalConf(p) for p in get_xdg_config_locations()]
 
-                # Then check the old user config
-                if isfile(OLD_USER_CONFIG):
-                    LOG.warning(" ===============================================")
-                    LOG.warning(" ==             DEPRECATION WARNING           ==")
-                    LOG.warning(" ===============================================")
-                    LOG.warning(" You still have a config file at " +
-                                OLD_USER_CONFIG)
-                    LOG.warning(" Note that this location is deprecated and will" +
-                                " not be used in the future")
-                    LOG.warning(" Please move it to " +
-                                join(XDG.xdg_config_home, 'mycroft'))
-                    configs.append(LocalConf(OLD_USER_CONFIG))
+                configs.append(Configuration.__patch)
+            else:
+                # just load the pre defined locations
+                configs += [LocalConf(old_user_config),
+                            Configuration.__patch]
 
-                # Then check the XDG user config
-                if isfile(USER_CONFIG):
-                    configs.append(LocalConf(USER_CONFIG))
-
-            # Then use remote config
-            if remote:
-                configs.append(RemoteConf())
-
-            # Then use the system config (/etc/mycroft/mycroft.conf)
-            configs.append(LocalConf(SYSTEM_CONFIG))
-
-            # Then use the config that comes with the package
-            configs.append(LocalConf(DEFAULT_CONFIG))
-
-            # Make sure we reverse the array, as merge_dict will put every new
-            # file on top of the previous one
-            configs = reversed(configs)
         else:
             # Handle strings in stack
             for index, item in enumerate(configs):
