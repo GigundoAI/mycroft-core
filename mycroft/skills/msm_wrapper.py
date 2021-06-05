@@ -26,7 +26,7 @@ from xdg import BaseDirectory as XDG
 
 from combo_lock import ComboLock
 from mycroft.util.log import LOG
-from mycroft.configuration import get_xdg_base
+from mycroft.configuration import get_xdg_base, Configuration
 from mock_msm import \
     MycroftSkillsManager as MockMSM, \
     SkillRepo as MockSkillRepo
@@ -114,19 +114,42 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     msm_lock = _init_msm_lock()
     LOG.info('Acquiring lock to instantiate MSM')
     with msm_lock:
-        # create folder if needed
-        XDG.save_data_path(get_xdg_base() + '/skills')
+
+        conf = Configuration.get(remote=False)
+        path_override = conf["skills"].get("directory_override")
+        # if .conf wants to use a specific path, use it!
+        if path_override:
+            skills_folder = path_override
+        # if xdg is enabled, respect it!
+        elif conf.get("disable_xdg"):
+            skills_folder = None
+        else:
+            # create folder if needed
+            skills_folder = XDG.save_data_path(get_xdg_base() + '/skills')
 
         msm_skill_repo = repo_clazz(
             msm_config.repo_url,
             msm_config.repo_branch
         )
-        msm_instance = msm_clazz(
-            platform=msm_config.platform,
-            old_skills_dir=msm_config.old_skills_dir,
-            repo=msm_skill_repo,
-            versioned=msm_config.versioned
-        )
+        # NOTE older versions of msm do not have old_skills_dir param
+        # let's support that just in case, mycroft did a mess with msm,
+        # it supports XDG but core doesnt, so there was a release of msm
+        # after the xdg release that removes it???
+        try:
+            msm_instance = msm_clazz(
+                platform=msm_config.platform,
+                old_skills_dir=msm_config.old_skills_dir,
+                repo=msm_skill_repo,
+                skills_dir=skills_folder,
+                versioned=msm_config.versioned
+            )
+        except:
+            msm_instance = msm_clazz(
+                platform=msm_config.platform,
+                repo=msm_skill_repo,
+                skills_dir=skills_folder,
+                versioned=msm_config.versioned
+            )
     LOG.info('Releasing MSM instantiation lock.')
 
     return msm_instance
