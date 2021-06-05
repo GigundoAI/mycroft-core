@@ -114,13 +114,18 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
     msm_lock = _init_msm_lock()
     LOG.info('Acquiring lock to instantiate MSM')
     with msm_lock:
-        # if xdg is enabled, respect it!
+
         conf = Configuration.get(remote=False)
-        if conf.get("disable_xdg"):
-            xdg_skills = None
+        path_override = conf["skills"].get("directory_override")
+        # if .conf wants to use a specific path, use it!
+        if path_override:
+            skills_folder = path_override
+        # if xdg is enabled, respect it!
+        elif conf.get("disable_xdg"):
+            skills_folder = None
         else:
             # create folder if needed
-            xdg_skills = XDG.save_data_path(get_xdg_base() + '/skills')
+            skills_folder = XDG.save_data_path(get_xdg_base() + '/skills')
 
         msm_skill_repo = repo_clazz(
             msm_config.repo_url,
@@ -135,14 +140,14 @@ def create_msm(msm_config: MsmConfig) -> MycroftSkillsManager:
                 platform=msm_config.platform,
                 old_skills_dir=msm_config.old_skills_dir,
                 repo=msm_skill_repo,
-                skills_dir=xdg_skills,
+                skills_dir=skills_folder,
                 versioned=msm_config.versioned
             )
         except:
             msm_instance = msm_clazz(
                 platform=msm_config.platform,
                 repo=msm_skill_repo,
-                skills_dir=xdg_skills,
+                skills_dir=skills_folder,
                 versioned=msm_config.versioned
             )
     LOG.info('Releasing MSM instantiation lock.')
