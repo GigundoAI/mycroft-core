@@ -27,7 +27,7 @@ from xdg import BaseDirectory as XDG
 
 from mycroft import MYCROFT_ROOT_PATH
 from mycroft.api import DeviceApi
-from mycroft.configuration import Configuration
+from mycroft.configuration import Configuration, get_xdg_base
 from mycroft.util.download import download
 from mycroft.util.log import LOG
 
@@ -60,7 +60,7 @@ def get_subscriber_voices():
     Returns:
         (dict) map of voices to custom Mimic executables.
     """
-    path = join(XDG.xdg_config_home, 'mycroft', 'voices', 'mimic_tn')
+    path = join(XDG.xdg_config_home, get_xdg_base(), 'voices', 'mimic_tn')
     return {'trinity': path}
 
 

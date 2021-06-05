@@ -17,6 +17,7 @@ import shutil
 from os.path import join, expanduser, isdir
 from xdg import BaseDirectory as XDG
 from mycroft.configuration import Configuration
+from mycroft.configuration.locations import get_xdg_base
 
 
 class FileSystemAccess:
@@ -36,7 +37,7 @@ class FileSystemAccess:
             raise ValueError("path must be initialized as a non empty string")
 
         old_path = join(expanduser('~'), '.mycroft', path)
-        path = join(XDG.xdg_config_home, 'mycroft', path)
+        path = join(XDG.xdg_config_home, get_xdg_base(), path)
 
         core_conf = Configuration.get(remote=False)
         if core_conf.get("disable_xdg"):

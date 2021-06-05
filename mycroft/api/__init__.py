@@ -543,4 +543,5 @@ def check_remote_pairing(ignore_errors):
 
 def is_backend_disabled():
     config = Configuration.get(cache=False, remote=False)
-    return config["server"].get("disabled") or False
+    return config.get("server", {}).get("disabled") or False
+
