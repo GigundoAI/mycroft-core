@@ -19,6 +19,7 @@ import os
 import os.path
 
 import mycroft
+from mycroft.configuration import get_xdg_base
 from mycroft.util.file_utils import ensure_directory_exists, create_file
 
 
@@ -39,7 +40,7 @@ def get_ipc_directory(domain=None):
     dir = config.get("ipc_path")
     if not dir:
         # If not defined, use /tmp/mycroft/ipc
-        dir = os.path.join(tempfile.gettempdir(), "mycroft", "ipc")
+        dir = os.path.join(tempfile.gettempdir(), get_xdg_base(), "ipc")
     return ensure_directory_exists(dir, domain)
 
 

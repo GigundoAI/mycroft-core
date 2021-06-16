@@ -253,7 +253,7 @@ def ensure_directory_exists(directory, domain=None, permissions=0o777):
         directory (str): Root directory
         domain (str): Domain. Basically a subdirectory to prevent things like
                       overlapping signal filenames.
-        rights (int): Directory permissions (default is 0o777)
+        permissions (int): Directory permissions (default is 0o777)
 
     Returns:
         (str) a path to the directory
@@ -266,8 +266,8 @@ def ensure_directory_exists(directory, domain=None, permissions=0o777):
     directory = os.path.expanduser(directory)
 
     if not os.path.isdir(directory):
+        save = os.umask(0)
         try:
-            save = os.umask(0)
             os.makedirs(directory, permissions)
         except OSError:
             LOG.warning("Failed to create: " + directory)
@@ -286,3 +286,5 @@ def create_file(filename):
     ensure_directory_exists(os.path.dirname(filename), permissions=0o775)
     with open(filename, 'w') as f:
         f.write('')
+    os.chmod(filename, 0o777)
+
