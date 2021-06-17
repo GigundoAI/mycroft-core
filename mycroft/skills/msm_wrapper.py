@@ -61,10 +61,15 @@ def get_skills_directory():
         skills_folder = path_override
     # if xdg is enabled, respect it!
     elif conf.get("disable_xdg"):
-        skills_folder = None
+        # old style mycroft-core skills path definition
+        data_dir = conf.get("data_dir") or "/opt/mycroft"
+        folder = conf["skills"].get("msm", {}).get("directory", "skills")
+        skills_folder = path.join(data_dir, folder)
     else:
-        # create folder if needed
         skills_folder = XDG.save_data_path(get_xdg_base() + '/skills')
+    # create folder if needed
+    if not path.exists(skills_folder):
+        makedirs(skills_folder)
     return skills_folder
 
 
