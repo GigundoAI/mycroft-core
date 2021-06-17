@@ -61,7 +61,7 @@ def get_xdg_base():
     return BASE_FOLDER
 
 
-def get_config_locations(default=True, web_cache=True, system=True,
+def get_config_locations(default=True, system=True, web_cache=False,
                          old_user=True, user=True):
     locs = []
     if default:
