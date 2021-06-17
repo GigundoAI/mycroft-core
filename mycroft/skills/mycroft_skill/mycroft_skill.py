@@ -962,12 +962,25 @@ class MycroftSkill:
     def _register_adapt_intent(self, intent_parser, handler):
         """Register an adapt intent.
 
+        Will handle registration of anonymous
         Args:
             intent_parser: Intent object to parse utterance for the handler.
             handler (func): function to register with intent
         """
         # Default to the handler's function name if none given
+        is_anonymous = not intent_parser.name
         name = intent_parser.name or handler.__name__
+        if is_anonymous:
+            # Find a good name
+            original_name = name
+            nbr = 0
+            while name in self.intent_service:
+                nbr += 1
+                name = f'{original_name}{nbr}'
+        else:
+            if name in self.intent_service:
+                raise ValueError(f'The intent name {name} is already taken')
+
         munge_intent_parser(intent_parser, name, self.skill_id)
         self.intent_service.register_adapt_intent(name, intent_parser)
         if handler:
@@ -1057,7 +1070,7 @@ class MycroftSkill:
         """Listener to enable a registered intent if it belongs to this skill.
         """
         intent_name = message.data['intent_name']
-        for (name, _) in self.intent_service:
+        for (name, _) in self.intent_service.detached_intents:
             if name == intent_name:
                 return self.enable_intent(intent_name)
 
@@ -1079,7 +1092,7 @@ class MycroftSkill:
                 bool: True if disabled, False if it wasn't registered
         """
         if intent_name in self.intent_service:
-            LOG.debug('Disabling intent ' + intent_name)
+            LOG.info('Disabling intent ' + intent_name)
             name = '{}:{}'.format(self.skill_id, intent_name)
             self.intent_service.detach_intent(name)
             return True
