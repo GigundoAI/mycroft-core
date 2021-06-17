@@ -13,18 +13,18 @@
 # limitations under the License.
 #
 
-import re
 import json
-import inflection
+import re
 from os.path import exists, isfile, join
+
+import inflection
 from requests import RequestException
 from xdg import BaseDirectory as XDG
 
-from mycroft.util.json_helper import load_commented_json, merge_dict
-from mycroft.util.log import LOG
-
 from mycroft.configuration.locations import get_webcache_location, \
     get_xdg_config_locations, get_xdg_base, get_config_locations
+from mycroft.util.json_helper import load_commented_json, merge_dict
+from mycroft.util.log import LOG
 
 
 def is_remote_list(values):
@@ -196,6 +196,23 @@ def _warn_xdg_config(old_user_config):
                                              get_xdg_base()))
 
 
+def is_using_xdg_config():
+    default_config, system_config, old_user_config = \
+        get_config_locations(default=True,
+                             web_cache=False,
+                             system=True,
+                             old_user=True,
+                             user=False)
+    # HolmesV feature: optional XDG
+    # load all non XDG configs, and check if XDG is disabled
+    # TODO deprecate this once mycroft-core moves to XDG
+    # (or just change default .conf value)
+    _config = Configuration.load_config_stack(
+        [default_config, system_config, old_user_config],
+        cache=False, remote=False)
+    return not _config.get("disable_xdg")
+
+
 class Configuration:
     """Namespace for operations on the configuration singleton."""
     __config = {}  # Cached config
@@ -236,9 +253,12 @@ class Configuration:
             (dict) merged dict of all configuration files
         """
         if not configs:
-            (default_config, web_cache,
-             system_config, old_user_config,
-             user_config) = get_config_locations()
+            default_config, system_config, old_user_config = \
+                get_config_locations(default=True,
+                                     system=True,
+                                     web_cache=False,
+                                     old_user=True,
+                                     user=False)
 
             if remote:
                 configs = [LocalConf(default_config),
@@ -248,17 +268,7 @@ class Configuration:
                 configs = [LocalConf(default_config),
                            LocalConf(system_config)]
 
-            # HolmesV feature: optional XDG
-            # load all non XDG configs, and check if XDG is disabled
-            # TODO deprecate this once mycroft-core moves to XDG
-            # (or just change default .conf value)
-            _config = Configuration.load_config_stack(
-                [default_config, system_config, old_user_config],
-                cache=False, remote=False)
-            if _config.get("disable_xdg"):
-                # just load the pre defined locations
-                configs += [LocalConf(old_user_config), Configuration.__patch]
-            else:
+            if is_using_xdg_config():
                 # deprecation warning
                 if isfile(old_user_config):
                     _warn_xdg_config(old_user_config)
@@ -266,9 +276,14 @@ class Configuration:
 
                 # This includes both the user config and
                 # /etc/xdg/mycroft/mycroft.conf
-                xdg_confs = [LocalConf(p) for p in get_xdg_config_locations()]
-                configs += xdg_confs + [LocalConf(user_config),
-                                        Configuration.__patch]
+                configs += [LocalConf(p) for p in get_xdg_config_locations()]
+
+                configs.append(Configuration.__patch)
+            else:
+                # just load the pre defined locations
+                configs += [LocalConf(old_user_config),
+                            Configuration.__patch]
+
         else:
             # Handle strings in stack
             for index, item in enumerate(configs):
