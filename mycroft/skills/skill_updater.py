@@ -50,7 +50,7 @@ class SkillUpdater:
         self.msm_lock = ComboLock('/tmp/mycroft-msm.lck')
         self.install_retries = 0
         self.config = Configuration.get()
-        update_interval = self.config['skills']['update_interval']
+        update_interval = self.config['skills'].get('update_interval', 1.0)
         self.update_interval = int(update_interval) * ONE_HOUR
         self.dot_msm_path = os.path.join(self.msm.skills_dir, '.msm')
         self.next_download = self._determine_next_download_time()

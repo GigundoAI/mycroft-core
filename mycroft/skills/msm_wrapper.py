@@ -94,17 +94,19 @@ def build_msm_config(device_config: dict) -> MsmConfig:
     ensure that changes to configs not related to MSM will not result in new
     instances of MSM being created.
     """
-    msm_config = device_config['skills']['msm']
-    msm_repo_config = msm_config['repo']
-    enclosure_config = device_config['enclosure']
-    data_dir = path.expanduser(device_config['data_dir'])
+    msm_config = device_config['skills'].get('msm', {"disabled": True})
+    msm_repo_config = msm_config.get('repo', {})
+    enclosure_config = device_config.get('enclosure', "generic")
+    data_dir = path.expanduser(device_config.get('data_dir', "/opt/mycroft"))
 
     return MsmConfig(
         platform=enclosure_config.get('platform', 'default'),
-        repo_branch=msm_repo_config['branch'],
-        repo_url=msm_repo_config['url'],
-        old_skills_dir=path.join(data_dir, msm_config['directory']),
-        versioned=msm_config['versioned'],
+        repo_branch=msm_repo_config.get('branch', "dev"),
+        repo_url=msm_repo_config.get(
+            'url', "https://github.com/MycroftAI/mycroft-skills"),
+        old_skills_dir=path.join(
+            data_dir, msm_config.get('directory', "skills")),
+        versioned=msm_config.get('versioned', False),
         disabled=msm_config.get("disabled", False)
     )
 
