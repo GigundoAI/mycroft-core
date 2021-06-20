@@ -376,7 +376,7 @@ class SkillManager(Thread):
         """Update skills once an hour if update is enabled"""
         do_skill_update = (
             time() >= self.skill_updater.next_download and
-            self.skills_config["auto_update"]
+            self.skills_config.get("auto_update", False)
         )
         if do_skill_update:
             self.skill_updater.update_skills()
