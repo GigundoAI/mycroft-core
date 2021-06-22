@@ -93,7 +93,7 @@ def download_subscriber_voices(selected_voice):
             LOG.debug('{} is not available for this architecture'
                       .format(selected_voice))
 
-    # Download the rest of the subsciber voices as needed
+    # Download the rest of the subscriber voices as needed
     for voice in subscriber_voices:
         voice_file = subscriber_voices[voice]
         if not exists(voice_file):

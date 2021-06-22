@@ -21,8 +21,7 @@ import inflection
 from requests import RequestException
 from xdg import BaseDirectory as XDG
 
-from mycroft.configuration.locations import get_webcache_location, \
-    get_xdg_config_locations, get_xdg_base, get_config_locations
+from mycroft.configuration.locations import *
 from mycroft.util.json_helper import load_commented_json, merge_dict
 from mycroft.util.log import LOG
 
@@ -260,13 +259,9 @@ class Configuration:
                                      old_user=True,
                                      user=False)
 
-            if remote:
-                configs = [LocalConf(default_config),
-                           LocalConf(system_config),
-                           RemoteConf()]
-            else:
-                configs = [LocalConf(default_config),
-                           LocalConf(system_config)]
+            configs = [LocalConf(default_config), LocalConf(system_config),
+                       RemoteConf()] if remote \
+                else [LocalConf(default_config), LocalConf(system_config)]
 
             if is_using_xdg_config():
                 # deprecation warning

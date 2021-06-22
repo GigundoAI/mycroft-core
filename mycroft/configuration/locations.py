@@ -123,8 +123,7 @@ def __ensure_folder_exists(path):
                 try:
                     os.makedirs(directory)
                 except Exception as e:
-                    from mycroft.util.log import LOG
-                    LOG.exception(e)
+                    pass
 
 
 __ensure_folder_exists(WEB_CONFIG_CACHE)
