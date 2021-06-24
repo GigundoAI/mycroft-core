@@ -396,8 +396,18 @@ class TTS(metaclass=ABCMeta):
                     audio_file, phoneme_file
                 )
             viseme = self.viseme(phonemes) if phonemes else None
+
+            # tts engine has a default audio extension, but we can not be
+            # sure that the file actually uses the same extension,
+            # for instance a mp3 engine might include some cache in wav format
+            # cached utterances might also be saved by the user in the
+            # resources directory
+            if not audio_file.path.endswith(self.audio_ext):
+                audio_ext = audio_file.path.split(".")[-1]
+            else:
+                audio_ext = self.audio_ext
             self.queue.put(
-                (self.audio_ext, str(audio_file.path), viseme, ident, l)
+                (audio_ext, str(audio_file.path), viseme, ident, l)
             )
 
     def _get_sentence_from_cache(self, sentence_hash):
