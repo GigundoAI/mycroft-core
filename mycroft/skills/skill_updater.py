@@ -196,16 +196,18 @@ class SkillUpdater:
             LOG.error('Failed to update skills: {}'.format(repr(e)))
 
     def post_manifest(self, reload_skills_manifest=False):
-        """Post the manifest of the device's skills to the backend."""
+        """Post the manifest of the device's skills to the backend.
+        If msm is disabled nothing is uploaded, skill state is MSM specific"""
         upload_allowed = self.config['skills'].get('upload_skill_manifest')
-        if upload_allowed and is_paired():
+        use_msm = self.config['skills'].get('msm', {}).get("disabled", True)
+        if upload_allowed and use_msm and is_paired():
             if reload_skills_manifest:
                 self.msm.clear_cache()
             try:
                 device_api = DeviceApi()
                 device_api.upload_skills_data(self.msm.device_skill_state)
             except Exception:
-                LOG.exception('Could not upload skill manifest')
+                LOG.error('Could not upload skill manifest')
 
     def install_or_update(self, skill):
         """Install missing defaults and update existing skills"""
