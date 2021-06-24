@@ -23,7 +23,7 @@ from warnings import warn
 
 import os.path
 from os.path import dirname, exists, isdir, join
-
+from pathlib import Path
 import mycroft.util
 from mycroft.enclosure.api import EnclosureAPI
 from mycroft.configuration import Configuration
@@ -376,7 +376,8 @@ class TTS(metaclass=ABCMeta):
                 # TODO 21.08: remove mutation of audio_file.path.
                 returned_file, phonemes = self.get_tts(
                     sentence, str(audio_file.path))
-                if returned_file.path != audio_file.path:
+                returned_file = Path(returned_file)
+                if returned_file != audio_file.path:
                     warn(
                         DeprecationWarning(
                             f"{self.tts_name} is saving files "
@@ -384,7 +385,7 @@ class TTS(metaclass=ABCMeta):
                             "the maintainer of this plugin, please adhere to "
                             "the file path argument provided. Modified paths "
                             "will be ignored in a future release."))
-                    audio_file = returned_file
+                    audio_file.path = returned_file
                 if phonemes:
                     phoneme_file = self.cache.define_phoneme_file(
                         sentence_hash
@@ -396,8 +397,16 @@ class TTS(metaclass=ABCMeta):
                     audio_file, phoneme_file
                 )
             viseme = self.viseme(phonemes) if phonemes else None
+
+            # tts engine has a default audio extension, but we can not be
+            # sure that the file actually uses the same extension,
+            # for instance a mp3 engine might include some cache in wav format
+            # cached utterances might also be saved by the user in the
+            # resources directory
+            _, audio_ext = os.path.splitext(str(audio_file.path))
+            audio_ext = audio_ext[1:]
             self.queue.put(
-                (self.audio_ext, str(audio_file.path), viseme, ident, l)
+                (audio_ext, str(audio_file.path), viseme, ident, l)
             )
 
     def _get_sentence_from_cache(self, sentence_hash):
