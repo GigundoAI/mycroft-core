@@ -142,19 +142,24 @@ class TextToSpeechCache:
     def __init__(self, tts_config, tts_name, audio_file_type):
         self.config = tts_config
         self.tts_name = tts_name
-        if self.config.get("preloaded_cache"):
-            self.persistent_cache_dir = Path(self.config["preloaded_cache"])
-        else:
-            self.persistent_cache_dir = None
         self.temporary_cache_dir = Path(
             get_cache_directory("tts/" + tts_name)
         )
+
+        if self.config.get("preloaded_cache"):
+            self.persistent_cache_dir = Path(self.config["preloaded_cache"])
+            ensure_directory_exists(
+                str(self.persistent_cache_dir), permissions=0o755
+            )
+        else:
+            self.persistent_cache_dir = None
+
         self.audio_file_type = audio_file_type
         self.resource_dir = Path(__file__).parent.parent.joinpath("res")
         self.cached_sentences = dict()
-        ensure_directory_exists(
-            str(self.persistent_cache_dir), permissions=0o755
-        )
+        # curate cache if disk usage is above min %
+        self.min_free_percent = self.config.get("min_free_percent", 75)
+
         ensure_directory_exists(
             str(self.temporary_cache_dir), permissions=0o755
         )
@@ -299,7 +304,7 @@ class TextToSpeechCache:
     def curate(self):
         """Remove cache data if disk space is running low."""
         files_removed = curate_cache(self.temporary_cache_dir,
-                                     min_free_percent=100)
+                                     min_free_percent=self.min_free_percent)
 
         hashes = set([hash_from_path(Path(path)) for path in files_removed])
         for sentence_hash in hashes:
