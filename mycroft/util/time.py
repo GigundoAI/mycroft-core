@@ -40,8 +40,7 @@ except ImportError:
 
 
     def now_local(tz=None):
-        if not tz:
-            tz = default_timezone()
+        tz = tz or default_timezone()
         return datetime.now(tz)
 
 
@@ -69,9 +68,9 @@ def set_default_tz(tz=None):
             LF.time.set_default_tz(tz)
         except:
             if not LN:
-                LOG.warning("mycroft-lib is using lingua_franca, it does not support "
-                            "timezones, install lingua_nostra instead, "
-                            "it is a drop in replacement with extra functionality")
+                LOG.warning("mycroft-lib is using lingua_franca, it does not handle "
+                            "timezones correctly, check for new releases or "
+                            "install lingua_nostra instead")
                 LOG.error("pip install lingua_nostra")
 
 
