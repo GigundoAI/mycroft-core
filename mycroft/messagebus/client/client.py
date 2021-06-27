@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-from mycroft_bus_client import MessageBusClient as _MessageBusClient
-from mycroft_bus_client.client import MessageWaiter
+try:
+    # chatterbox bus client is a drop in replacement, it adds functionality
+    # to encrypt payloads, this is done transparently from the .conf
+    from chatterbox_bus_client import MessageBusClient as _MessageBusClient
+    from chatterbox_bus_client.client import MessageWaiter
+except ImportError:
+    from mycroft_bus_client import MessageBusClient as _MessageBusClient
+    from mycroft_bus_client.client import MessageWaiter
 
 from mycroft.messagebus.load_config import load_message_bus_config
 from mycroft.util.process_utils import create_echo_function
