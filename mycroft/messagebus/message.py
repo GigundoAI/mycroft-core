@@ -14,27 +14,36 @@
 #
 import re
 
-from mycroft.util.parse import normalize
 from mycroft_bus_client.message import dig_for_message
-import mycroft_bus_client
+from mycroft.messagebus.load_config import get_bus_config
 
+if get_bus_config().get("use_chatterbox"):
+    # chatterbox bus client is a drop in replacement, it adds functionality
+    # to encrypt payloads, this is done transparently from the .conf
+    from chatterbox_bus_client.message import Message
+else:
+    from mycroft_bus_client import Message as _Message
+    from mycroft.util.parse import normalize
 
-class Message(mycroft_bus_client.Message):
-    """Mycroft specific Message class."""
-    def utterance_remainder(self):
-        """
-        For intents get the portion not consumed by Adapt.
+    # utterance_remainder is available on chatterbox-bus-client, but not on
+    # mycroft
+    class Message(_Message):
+        """Mycroft specific Message class."""
 
-        For example: if they say 'Turn on the family room light' and there are
-        entity matches for "turn on" and "light", then it will leave behind
-        " the family room " which is then normalized to "family room".
+        def utterance_remainder(self):
+            """
+            For intents get the portion not consumed by Adapt.
 
-        Returns:
-            str: Leftover words or None if not an utterance.
-        """
-        utt = normalize(self.data.get("utterance", ""))
-        if utt and "__tags__" in self.data:
-            for token in self.data["__tags__"]:
-                # Substitute only whole words matching the token
-                utt = re.sub(r'\b' + token.get("key", "") + r"\b", "", utt)
-        return normalize(utt)
+            For example: if they say 'Turn on the family room light' and there are
+            entity matches for "turn on" and "light", then it will leave behind
+            " the family room " which is then normalized to "family room".
+
+            Returns:
+                str: Leftover words or None if not an utterance.
+            """
+            utt = normalize(self.data.get("utterance", ""))
+            if utt and "__tags__" in self.data:
+                for token in self.data["__tags__"]:
+                    # Substitute only whole words matching the token
+                    utt = re.sub(r'\b' + token.get("key", "") + r"\b", "", utt)
+            return normalize(utt)
