@@ -33,46 +33,45 @@ except ImportError:
     # lingua_franca/lingua_nostra are optional and should not be needed
     # because of time utils, only parse and format utils require it
 
-    # TODO improve this, duplicating code is usually bad, consider
-    #  supporting only LN and making it a hard requirement, in this case
-    #  only skills importing LF would need to worry, the setter methods
-    #  should always account for both libs
+    # TODO improve this, duplicating code is usually bad
 
     def now_utc():
         return to_utc(datetime.utcnow())
 
 
     def now_local(tz=None):
-        if not tz:
-            tz = default_timezone()
+        tz = tz or default_timezone()
         return datetime.now(tz)
 
 
     def to_utc(dt):
-        tzUTC = gettz("UTC")
-        if dt.tzinfo:
-            return dt.astimezone(tzUTC)
-        else:
-            return dt.replace(tzinfo=gettz("UTC")).astimezone(tzUTC)
+        tz = gettz("UTC")
+        if not dt.tzinfo:
+            dt = dt.replace(tzinfo=default_timezone())
+        return dt.astimezone(tz)
 
 
     def to_local(dt):
         tz = default_timezone()
-        if dt.tzinfo:
-            return dt.astimezone(tz)
-        else:
-            return dt.replace(tzinfo=gettz("UTC")).astimezone(tz)
+        if not dt.tzinfo:
+            dt = dt.replace(tzinfo=default_timezone())
+        return dt.astimezone(tz)
 
 
 def set_default_tz(tz=None):
-    """ placeholder waiting for lingua_nostra version bump """
+    """ configure both LF and LN """
     if LN:
         LN.time.set_default_tz(tz)
-    elif LF:
-        LOG.warning("mycroft-lib is using lingua_franca, it does not support "
-                    "timezones, install lingua_nostra instead, "
-                    "it is a drop in replacement with extra functionality")
-        LOG.error("pip install lingua_nostra")
+    if LF:
+        # tz added in recently, depends on version
+        try:
+            LF.time.set_default_tz(tz)
+        except:
+            if not LN:
+                LOG.warning("mycroft-lib is using lingua_franca, it does not handle "
+                            "timezones correctly, check for new releases or "
+                            "install lingua_nostra instead")
+                LOG.error("pip install lingua_nostra")
 
 
 def default_timezone():
@@ -112,7 +111,6 @@ def to_system(dt):
         (datetime): time converted to the operation system's timezone
     """
     tz = tzlocal()
-    if dt.tzinfo:
-        return dt.astimezone(tz)
-    else:
-        return dt.replace(tzinfo=gettz("UTC")).astimezone(tz)
+    if not dt.tzinfo:
+        dt = dt.replace(tzinfo=default_timezone())
+    return dt.astimezone(tz)
