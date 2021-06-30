@@ -16,7 +16,7 @@ import sys
 import io
 from math import ceil
 
-from .gui_server import start_qml_gui
+from mycroft.client.text.gui_server import start_qml_gui
 
 from mycroft.tts import TTS
 

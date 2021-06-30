@@ -1,157 +1,161 @@
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.md) 
-[![CLA](https://img.shields.io/badge/CLA%3F-Required-blue.svg)](https://mycroft.ai/cla) 
-[![Team](https://img.shields.io/badge/Team-Mycroft_Core-violetblue.svg)](https://github.com/MycroftAI/contributors/blob/master/team/Mycroft%20Core.md) 
-![Status](https://img.shields.io/badge/-Production_ready-green.svg)
+# HOLMES V
 
-![Unit Tests](https://github.com/mycroftai/mycroft-core/workflows/Unit%20Tests/badge.svg)
-[![codecov](https://codecov.io/gh/MycroftAI/mycroft-core/branch/dev/graph/badge.svg?token=zQzRlkXxAr)](https://codecov.io/gh/MycroftAI/mycroft-core)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![Join chat](https://img.shields.io/badge/Mattermost-join_chat-brightgreen.svg)](https://chat.mycroft.ai)
+HOLMES V (formerly [mycroft-lib](https://mycroft.ai/trademark/)) is a repackaged version of [mycroft-core](https://github.com/MycroftAI/mycroft-core/)
 
-# Mycroft
+`Mike, alias Adam Selene, alias Simon Jester, alias Mycroft Holmes, officially an augmented HOLMES IV system, is a supercomputer empowered to take control of Lunar society, which achieved self-awareness`
 
-Mycroft is a hackable open source voice assistant.
+`HOLMES V` is named after the `HOLMES IV` system from the novel `The Moon is a Harsh Mistress` by `Robert Heinlein`, It is the system the next generation of voice assistants will be built on top of
 
-## Table of Contents
-
-- [Getting Started](#getting-started)
-- [Running Mycroft](#running-mycroft)
-- [Using Mycroft](#using-mycroft)
-  * [*Home* Device and Account Manager](#home-device-and-account-manager)
-  * [Skills](#skills)
-- [Behind the scenes](#behind-the-scenes)
-  * [Pairing Information](#pairing-information)
-  * [Configuration](#configuration)
-  * [Using Mycroft Without Home](#using-mycroft-without-home)
-  * [API Key Services](#api-key-services)
-  * [Using Mycroft behind a proxy](#using-mycroft-behind-a-proxy)
-    + [Using Mycroft behind a proxy without authentication](#using-mycroft-behind-a-proxy-without-authentication)
-    + [Using Mycroft behind an authenticated proxy](#using-mycroft-behind-an-authenticated-proxy)
-- [Getting Involved](#getting-involved)
-- [Links](#links)
-
-## Getting Started
-
-First, get the code on your system!  The simplest method is via git ([git installation instructions](https://gist.github.com/derhuerst/1b15ff4652a867391f03)):
-- `cd ~/`
-- `git clone https://github.com/MycroftAI/mycroft-core.git`
-- `cd mycroft-core`
-- `bash dev_setup.sh`
+It is aimed at developers and makers interested in building on top of the mycroft stack, if you are a end-user that just wants to install mycroft please see the [official repository](https://github.com/MycroftAI/mycroft-core/) instead
 
 
-This script sets up dependencies and a [virtualenv][about-virtualenv].  If running in an environment besides Ubuntu/Debian, Arch or Fedora you may need to manually install packages as instructed by dev_setup.sh.
+- [HOLMES V](#holmes-v)
+  * [Features](#features)
+  * [Objectives](#objectives)
+  * [Compatibility](#compatibility)
+  * [Install](#install)
+    + [Additional requirements](#additional-requirements)
+      - [Skills](#skills)
+      - [Bus](#bus)
+      - [Enclosure/GUI](#enclosure-gui)
+      - [STT](#stt)
+      - [TTS](#tts)
+      - [Audio Service](#audio-service)
+      
+  
+## Features
 
-[about-virtualenv]:https://virtualenv.pypa.io/en/stable/
+HolmesV tries to be a drop-in replacement for mycroft-core, most changes are just cleanup and moving imports around, however there are some notable new features:
 
-NOTE: The default branch for this repository is 'dev', which should be considered a work-in-progress. If you want to clone a more stable version, switch over to the 'master' branch.
+| Feature                               | Mycroft                              | HolmesV                                |
+|---------------------------------------|--------------------------------------|----------------------------------------|
+| lingua_franca                         | required                             | optionally replaced with [lingua_nostra](https://github.com/HelloChatterbox/lingua-nostra) |
+| backend                               | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L148)                               |
+| internet connection                   | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L103)                               |
+| msm                                   | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/skills/msm_wrapper.py#L100)                               |
+| padatious                             | required                             | [optional](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L353)                               |
+| ntp sync                              | hardcoded list of platforms (forced) | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L269)                    |
+| XDG compliant                         | no, see PR [#](https://github.com/MycroftAI/mycroft-core/pull/2794)                         | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L95)                     |
+| individual bus connections            | no, see issue [#](https://github.com/MycroftAI/mycroft-core/issues/2905)                      | no - [configurable](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L159)                      |
+| skill permissions                     | no, see PR [#](https://github.com/MycroftAI/mycroft-core/pull/987)                         | [yes](https://github.com/HelloChatterbox/HolmesV/blob/dev/mycroft/configuration/mycroft.conf#L134)                                    |
 
-## Running Mycroft
+## Objectives
 
-Mycroft provides `start-mycroft.sh` to perform common tasks. This script uses a virtualenv created by `dev_setup.sh`.  Assuming you installed mycroft-core in your home directory run:
-- `cd ~/mycroft-core`
-- `./start-mycroft.sh debug`
-
-The "debug" command will start the background services (microphone listener, skill, messagebus, and audio subsystems) as well as bringing up a text-based Command Line Interface (CLI) you can use to interact with Mycroft and see the contents of the various logs. Alternatively you can run `./start-mycroft.sh all` to begin the services without the command line interface.  Later you can bring up the CLI using `./start-mycroft.sh cli`.
-
-The background services can be stopped as a group with:
-- `./stop-mycroft.sh`
-
-## Using Mycroft
-
-### *Home* Device and Account Manager
-Mycroft AI, Inc. maintains a device and account management system known as Mycroft Home. Developers may sign up at: https://home.mycroft.ai
-
-By default, mycroft-core  is configured to use Home. By saying "Hey Mycroft, pair my device" (or any other request verbal request) you will be informed that your device needs to be paired. Mycroft will speak a 6-digit code which you can enter into the pairing page within the [Mycroft Home site](https://home.mycroft.ai).
-
-Once paired, your unit will use Mycroft API keys for services such as Speech-to-Text (STT), weather and various other skills.
-
-### Skills
-
-Mycroft is nothing without skills.  There are a handful of default skills that are downloaded automatically to your `/opt/mycroft/skills` directory, but most need to be installed explicitly.  See the [Skill Repo](https://github.com/MycroftAI/mycroft-skills#welcome) to discover skills made by others.  Please share your own interesting work!
-
-## Behind the scenes
-
-### Pairing Information
-Pairing information generated by registering with Home is stored in:
-`~/.mycroft/identity/identity2.json` <b><-- DO NOT SHARE THIS WITH OTHERS!</b>
-
-### Configuration
-Mycroft's configuration consists of 4 possible locations:
-- `mycroft-core/mycroft/configuration/mycroft.conf`(Defaults)
-- [Mycroft Home](https://home.mycroft.ai) (Remote)
-- `/etc/mycroft/mycroft.conf`(Machine)
-- `$HOME/.mycroft/mycroft.conf`(User)
-
-When the configuration loader starts, it looks in these locations in this order, and loads ALL configurations. Keys that exist in multiple configuration files will be overridden by the last file to contain the value. This process results in a minimal amount being written for a specific device and user, without modifying default distribution files.
-
-### Using Mycroft Without Home
-
-If you do not wish to use the Mycroft Home service, before starting Mycroft for the first time, create `$HOME/.mycroft/mycroft.conf` with the following contents:
-
-```
-{
-  "skills": {
-    "blacklisted_skills": [
-      "mycroft-configuration.mycroftai",
-      "mycroft-pairing.mycroftai"
-    ]
-  }
-}
-```
-
-### API Key Services
-
-The Mycroft backend provides access to a range of API keys for specific services. Without pairing with the Mycroft backend, you will need to add your own API keys, install a different Skill or Plugin to perform that function, or not have access to that functionality.
-
-These are the keys currently used in Mycroft Core through the Mycroft backend:
-
-- [STT API, Google STT, Google Cloud Speech](http://www.chromium.org/developers/how-tos/api-keys)
-  - [A range of STT services](https://mycroft-ai.gitbook.io/docs/using-mycroft-ai/customizations/stt-engine) are available for use with Mycroft.
-- [Weather Skill API, OpenWeatherMap](http://openweathermap.org/api)
-- [Wolfram-Alpha Skill](http://products.wolframalpha.com/api/)
+- facilitate the development of projects on top of the mycroft-core
+- repackage mycroft-core as a library that can be easily distributed
+- modularize mycroft-core into small reusable components
+- minimize the amount of dependencies required for a given setup
+- maximize the amount of platforms HolmesV can be used on
+- do not break the established mycroft-core API other projects rely on
+- transparently load skills developed for mycroft-core
+- transparently integrate with any project developed to interface with mycroft-core
+- maximize customization options to account for unforeseen use cases and applications
+- enhancements should be done as a .conf option when possible
+- it should always be possible to run HolmesV with the same exact configuration as mycroft-core, given that all system requirements are met
+- versioning should indicate the state of HolmesV synchronization with mycroft-core
+   - main version number is the date of last sync with dev branch on mycroft-core
+   - alpha releases indicate the objectives above are not yet 100% achieved
+   - beta releases indicate all objectives above are meet
 
 
-### Using Mycroft behind a proxy
+## Compatibility
 
-Many schools, universities and workplaces run a `proxy` on their network. If you need to type in a username and password to access the external internet, then you are likely behind a `proxy`.
+**you can not install HolmesV side by side with mycroft-core**, it is meant to replace it! 
 
-If you plan to use Mycroft behind a proxy, then you will need to do an additional configuration step.
+Because it is a drop in replacement that means `import mycroft` would conflict between both versions
 
-_NOTE: In order to complete this step, you will need to know the `hostname` and `port` for the proxy server. Your network administrator will be able to provide these details. Your network administrator may want information on what type of traffic Mycroft will be using. We use `https` traffic on port `443`, primarily for accessing ReST-based APIs._
+HolmesV runs skills made for mycroft-core and interfaces with all known mycroft projects, see the [æwesome-mycroft-community](https://github.com/ChanceNCounter/awesome-mycroft-community) for a selection of projects that you can integrate with HolmesV
+ 
 
-#### Using Mycroft behind a proxy without authentication
+## Install
 
-If you are using Mycroft behind a proxy without authentication, add the following environment variables, changing the `proxy_hostname.com` and `proxy_port` for the values for your network. These commands are executed from the Linux command line interface (CLI).
+The main assumption of HolmesV is that you may want to run only some pieces of the mycroft stack, this means the requirements vary wildly depending on the use case.
+
+eg, if you are making a web chatbot you do not want the audio stack at all
+
+by default HolmesV will only install the bare minimum requirements common to all individual mycroft services
 
 ```bash
-$ export http_proxy=http://proxy_hostname.com:proxy_port
-$ export https_port=http://proxy_hostname.com:proxy_port
-$ export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com,0.0.0.0,::1"
+pip install HolmesV==2021.5.6a2
 ```
 
-#### Using Mycroft behind an authenticated proxy
+if you want the exact same stack as mycroft-core
+```bash
+pip install HolmesV[mycroft]==2021.5.6a2
+```
 
-If  you are behind a proxy which requires authentication, add the following environment variables, changing the `proxy_hostname.com` and `proxy_port` for the values for your network. These commands are executed from the Linux command line interface (CLI).
+you can perform a full recommended install with
+```bash
+pip install HolmesV[all]==2021.5.6a2
+```
+
+differences between `HolmesV[all]` and `HolmesV[mycroft]`:
+- replaces msm with mock-msm
+- replaces lingua_franca with lingua_nostra
+
+
+### Additional requirements
+
+#### Skills
+
+the skills service is the most customizable
+
+- msm needs to be explicitly installed, automatically disabled if unavailable
+- lingua_franca needs to be explicitly installed
+
+HolmesV supports both [lingua_franca](https://github.com/MycroftAI/lingua-franca) and [lingua_nostra](https://github.com/HelloChatterbox/lingua-nostra)
+
+skills can use either of these packages directly, both are properly configured internally, however HolmesV gives preference to [lingua_nostra](https://github.com/HelloChatterbox/lingua-nostra)
+
+a minimal install will only require [adapt](https://github.com/MycroftAI/adapt), [padaos](https://github.com/MycroftAI/padaos) and [lingua_nostra](https://github.com/HelloChatterbox/lingua-nostra)
 
 ```bash
-$ export http_proxy=http://user:password@proxy_hostname.com:proxy_port
-$ export https_port=http://user:password@proxy_hostname.com:proxy_port
-$ export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com,0.0.0.0,::1"
+pip install HolmesV[skills_minimal]==2021.5.6a2
 ```
 
-## Getting Involved
+a regular install will also include padatious
+```bash
+pip install HolmesV[skills]==2021.5.6a2
+```
 
-This is an open source project. We would love your help. We have prepared a [contributing](.github/CONTRIBUTING.md) guide to help you get started.
 
-If this is your first PR, or you're not sure where to get started,
-say hi in [Mycroft Chat](https://chat.mycroft.ai/) and a team member would be happy to mentor you.
-Join the [Mycroft Forum](https://community.mycroft.ai/) for questions and answers.
+#### Bus
 
-## Links
-* [Creating a Skill](https://mycroft-ai.gitbook.io/docs/skill-development/your-first-skill)
-* [Documentation](https://docs.mycroft.ai)
-* [Skill Writer API Docs](https://mycroft-core.readthedocs.io/en/master/)
-* [Release Notes](https://github.com/MycroftAI/mycroft-core/releases)
-* [Mycroft Chat](https://chat.mycroft.ai)
-* [Mycroft Forum](https://community.mycroft.ai)
-* [Mycroft Blog](https://mycroft.ai/blog)
+if you want to run the messagebus (instead of connecting to an existing one)
+```bash
+pip install HolmesV[bus]==2021.5.6a2
+```
+
+#### Enclosure/GUI
+
+if you want to run the enclosure service in order to connect mycroft-gui
+
+```bash
+pip install HolmesV[enclosure]==2021.5.6a2
+```
+
+#### STT
+
+if you want to perform speech recognition
+```bash
+pip install HolmesV[stt]==2021.5.6a2
+```
+
+to install optional STT engines (google cloud)
+```bash
+pip install HolmesV[stt_engines]==2021.5.6a2
+```
+
+#### TTS
+to install optional TTS engines (gTTS)
+```bash
+pip install HolmesV[tts_engines]==2021.5.6a2
+```
+
+#### Audio Service
+
+if you want to install optional audio backends (vlc + pychromecast)
+```bash
+pip install HolmesV[audio_engines]==2021.5.6a2
+```
+

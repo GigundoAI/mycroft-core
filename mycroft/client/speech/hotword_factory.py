@@ -27,7 +27,6 @@ from threading import Timer, Thread
 from time import time, sleep
 from urllib.error import HTTPError
 
-from petact import install_package
 import requests
 
 from mycroft.configuration import Configuration, LocalConf, USER_CONFIG
@@ -190,6 +189,8 @@ class PreciseHotword(HotWordEngine):
     """
     def __init__(self, key_phrase="hey mycroft", config=None, lang="en-us"):
         super().__init__(key_phrase, config, lang)
+        global install_package
+        from petact import install_package
         from precise_runner import (
             PreciseRunner, PreciseEngine, ReadWriteStream
         )

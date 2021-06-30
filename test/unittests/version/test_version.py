@@ -15,7 +15,8 @@
 import unittest
 from unittest.mock import mock_open, patch
 
-from mycroft.version import check_version, CORE_VERSION_STR, VersionManager
+from mycroft.version import check_version, HOLMES_VERSION_STR, \
+    CORE_VERSION_STR, VersionManager
 
 
 VERSION_INFO = """
@@ -65,4 +66,5 @@ class TestVersion(unittest.TestCase):
         mock_exists.return_value = False
         version = VersionManager.get()
         self.assertEqual(version['coreVersion'], CORE_VERSION_STR)
+        self.assertEqual(version['HolmesVersion'], HOLMES_VERSION_STR)
         self.assertEqual(version['enclosureVersion'], None)
