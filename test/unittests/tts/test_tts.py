@@ -103,7 +103,7 @@ class TestTTS(unittest.TestCase):
         tts.queue.put.assert_called_with(
             (
                 'wav',
-                str(mock_audio.path),
+                str(mock_audio),
                 mock_viseme,
                 42,
                 False
